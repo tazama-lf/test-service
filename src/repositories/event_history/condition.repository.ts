@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { PgQueryConfig } from '@tazama-lf/frms-coe-lib';
 import type { Condition } from '@tazama-lf/frms-coe-lib/lib/interfaces';
-import { handlePostExecuteSqlStatement } from '../../database.logic.service';
+import handleExecuteSqlStatement from '../../database.logic.service';
 import type { CrudRepository } from '../repository.base';
 
 export const ConditionRepo: CrudRepository<Condition> = {
   list: async function ({ offset, limit, sort, order }): Promise<{ data: Condition[]; total: number }> {
     sort ??= 'creDtTm';
-    const queryRes = await handlePostExecuteSqlStatement<{ condition: Condition }>(
+    const queryRes = await handleExecuteSqlStatement<{ condition: Condition }>(
       {
         text: `SELECT condition FROM condition ORDER BY condition->>$3 ${order} OFFSET $1 LIMIT $2`,
         values: [offset, limit, sort],
@@ -21,7 +21,7 @@ export const ConditionRepo: CrudRepository<Condition> = {
   },
 
   get: async function (id: string): Promise<Condition | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ condition: Condition }>(
+    const queryRes = await handleExecuteSqlStatement<{ condition: Condition }>(
       {
         text: 'SELECT condition FROM condition WHERE id = $1;',
         values: [id],
@@ -33,7 +33,7 @@ export const ConditionRepo: CrudRepository<Condition> = {
   },
 
   create: async function (payload: Condition): Promise<Condition> {
-    const queryRes = await handlePostExecuteSqlStatement<{ condition: Condition }>(
+    const queryRes = await handleExecuteSqlStatement<{ condition: Condition }>(
       {
         text: 'INSERT INTO condition (condition) VALUES ($1) RETURNING condition',
         values: [payload],
@@ -44,7 +44,7 @@ export const ConditionRepo: CrudRepository<Condition> = {
   },
 
   update: async function (id: string, payload: Condition): Promise<Condition | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ condition: Condition }>(
+    const queryRes = await handleExecuteSqlStatement<{ condition: Condition }>(
       {
         text: 'UPDATE condition SET condition = $1 WHERE id = $2 RETURNING condition',
         values: [payload, id],
@@ -55,7 +55,7 @@ export const ConditionRepo: CrudRepository<Condition> = {
   },
 
   remove: async function (id: string): Promise<boolean> {
-    const queryRes = await handlePostExecuteSqlStatement<{ condition: Condition }>(
+    const queryRes = await handleExecuteSqlStatement<{ condition: Condition }>(
       {
         text: 'DELETE FROM condition WHERE id = $1',
         values: [id],

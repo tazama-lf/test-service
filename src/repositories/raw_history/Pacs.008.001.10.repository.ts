@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { PgQueryConfig } from '@tazama-lf/frms-coe-lib';
 import type { Pacs008 } from '@tazama-lf/frms-coe-lib/lib/interfaces';
-import { handlePostExecuteSqlStatement } from '../../database.logic.service';
+import handleExecuteSqlStatement from '../../database.logic.service';
 import type { CrudRepository } from '../repository.base';
 
 export const Pacs008Repo: CrudRepository<Pacs008> = {
   list: async function ({ offset, limit, sort, order }): Promise<{ data: Pacs008[]; total: number }> {
     sort ??= 'TxTp';
-    const queryRes = await handlePostExecuteSqlStatement<{ document: Pacs008 }>(
+    const queryRes = await handleExecuteSqlStatement<{ document: Pacs008 }>(
       {
         text: `SELECT document FROM pacs008 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
         values: [offset, limit],
@@ -21,7 +21,7 @@ export const Pacs008Repo: CrudRepository<Pacs008> = {
   },
 
   get: async function (id): Promise<Pacs008 | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ document: Pacs008 }>(
+    const queryRes = await handleExecuteSqlStatement<{ document: Pacs008 }>(
       {
         text: 'SELECT document FROM pacs008 WHERE messageid = $1;',
         values: [id],
@@ -33,7 +33,7 @@ export const Pacs008Repo: CrudRepository<Pacs008> = {
   },
 
   create: async function (payload: Pacs008): Promise<Pacs008> {
-    const queryRes = await handlePostExecuteSqlStatement<{ document: Pacs008 }>(
+    const queryRes = await handleExecuteSqlStatement<{ document: Pacs008 }>(
       {
         text: 'INSERT INTO pacs008 (document) VALUES ($1) RETURNING document;',
         values: [payload],
@@ -44,7 +44,7 @@ export const Pacs008Repo: CrudRepository<Pacs008> = {
   },
 
   update: async function (id: string, payload: Pacs008): Promise<Pacs008 | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ document: Pacs008 }>(
+    const queryRes = await handleExecuteSqlStatement<{ document: Pacs008 }>(
       {
         text: 'UPDATE pacs008 SET document = $1 WHERE messageid = $2 RETURNING document;',
         values: [payload, id],
@@ -55,7 +55,7 @@ export const Pacs008Repo: CrudRepository<Pacs008> = {
   },
 
   remove: async function (id: string): Promise<boolean> {
-    const queryRes = await handlePostExecuteSqlStatement<{ document: Pacs008 }>(
+    const queryRes = await handleExecuteSqlStatement<{ document: Pacs008 }>(
       {
         text: 'DELETE FROM pacs008 WHERE messageid = $1;',
         values: [id],

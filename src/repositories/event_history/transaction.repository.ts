@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { PgQueryConfig } from '@tazama-lf/frms-coe-lib';
 import type { TransactionDetails } from '@tazama-lf/frms-coe-lib/lib/interfaces';
-import { handlePostExecuteSqlStatement } from '../../database.logic.service';
+import handleExecuteSqlStatement from '../../database.logic.service';
 import type { CrudRepository } from '../repository.base';
 
 interface Transaction {
@@ -13,7 +13,7 @@ interface Transaction {
 export const TransactionRepo: CrudRepository<Transaction> = {
   list: async function ({ limit, offset, order, sort }): Promise<{ data: Transaction[]; total: number }> {
     sort ??= 'destination';
-    const queryRes = await handlePostExecuteSqlStatement<Transaction>(
+    const queryRes = await handleExecuteSqlStatement<Transaction>(
       {
         text: `SELECT * FROM transaction ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
         values: [offset, limit],
@@ -25,7 +25,7 @@ export const TransactionRepo: CrudRepository<Transaction> = {
   },
 
   get: async function (id: string): Promise<Transaction | null> {
-    const queryRes = await handlePostExecuteSqlStatement<Transaction>(
+    const queryRes = await handleExecuteSqlStatement<Transaction>(
       {
         text: 'SELECT * FROM transaction WHERE msgid = $1;',
         values: [id],
@@ -37,7 +37,7 @@ export const TransactionRepo: CrudRepository<Transaction> = {
   },
 
   create: async function (payload: Transaction): Promise<Transaction> {
-    const queryRes = await handlePostExecuteSqlStatement<Transaction>(
+    const queryRes = await handleExecuteSqlStatement<Transaction>(
       {
         text: 'INSERT INTO transaction (source, destination, transaction) VALUES ($1, $2, $3) RETURNING source, destination, transaction;',
         values: [payload.source, payload.destination, payload.transaction],
@@ -48,7 +48,7 @@ export const TransactionRepo: CrudRepository<Transaction> = {
   },
 
   update: async function (id: string, payload: Transaction): Promise<Transaction | null> {
-    const queryRes = await handlePostExecuteSqlStatement<Transaction>(
+    const queryRes = await handleExecuteSqlStatement<Transaction>(
       {
         text: 'UPDATE transaction SET source = $1,destination = $2,transaction = $3 WHERE msgid = $4 RETURNING source, destination, transaction;',
         values: [payload.source, payload.destination, payload.transaction, id],
@@ -59,7 +59,7 @@ export const TransactionRepo: CrudRepository<Transaction> = {
   },
 
   remove: async function (id: string): Promise<boolean> {
-    const queryRes = await handlePostExecuteSqlStatement<{ transaction: Transaction }>(
+    const queryRes = await handleExecuteSqlStatement<{ transaction: Transaction }>(
       {
         text: 'DELETE FROM transaction WHERE msgid = $1;',
         values: [id],

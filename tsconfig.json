@@ -16,7 +16,7 @@
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "moduleResolution": "nodenext",
     "forceConsistentCasingInFileNames": true, /* Disallow inconsistently-cased references to the same file. */
-    "isolatedModules": true /* Ensure that each file can be safely transpiled without relying on other imports. */
+    "isolatedModules": true, /* Ensure that each file can be safely transpiled without relying on other imports. */
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules", "build"]

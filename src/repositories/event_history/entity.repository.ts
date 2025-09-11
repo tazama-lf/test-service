@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { PgQueryConfig } from '@tazama-lf/frms-coe-lib';
 import type { Entity } from '@tazama-lf/frms-coe-lib/lib/interfaces';
-import { handlePostExecuteSqlStatement } from '../../database.logic.service';
+import handleExecuteSqlStatement from '../../database.logic.service';
 import type { CrudRepository } from '../repository.base';
 
 export const EntityRepo: CrudRepository<Entity> = {
   list: async function ({ limit, offset, sort, order }): Promise<{ data: Entity[]; total: number }> {
     sort ??= 'creDtTm';
-    const queryRes = await handlePostExecuteSqlStatement<Entity>(
+    const queryRes = await handleExecuteSqlStatement<Entity>(
       {
         text: `SELECT id, credttm as "creDtTm" FROM entity ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2`,
         values: [offset, limit],
@@ -19,7 +19,7 @@ export const EntityRepo: CrudRepository<Entity> = {
   },
 
   get: async function (id: string): Promise<Entity | null> {
-    const queryRes = await handlePostExecuteSqlStatement<Entity>(
+    const queryRes = await handleExecuteSqlStatement<Entity>(
       {
         text: 'SELECT id, credttm as "creDtTm" FROM entity WHERE id = $1;',
         values: [id],
@@ -31,7 +31,7 @@ export const EntityRepo: CrudRepository<Entity> = {
   },
 
   create: async function (payload: Entity): Promise<Entity> {
-    const queryRes = await handlePostExecuteSqlStatement<{ entity: Entity }>(
+    const queryRes = await handleExecuteSqlStatement<{ entity: Entity }>(
       {
         text: 'INSERT INTO entity (id, creDtTm) VALUES ($1,$2) RETURNING id, credttm as "creDtTm";',
         values: [payload.id, payload.creDtTm],
@@ -42,7 +42,7 @@ export const EntityRepo: CrudRepository<Entity> = {
   },
 
   update: async function (id: string, payload: Entity): Promise<Entity | null> {
-    const queryRes = await handlePostExecuteSqlStatement<Entity>(
+    const queryRes = await handleExecuteSqlStatement<Entity>(
       {
         text: 'UPDATE entity SET id = $1, creDtTm = $2 WHERE id = $3 RETURNING id, credttm AS "creDtTm";',
         values: [payload.id, payload.creDtTm, id],
@@ -53,7 +53,7 @@ export const EntityRepo: CrudRepository<Entity> = {
   },
 
   remove: async function (id: string): Promise<boolean> {
-    const queryRes = await handlePostExecuteSqlStatement<Entity>(
+    const queryRes = await handleExecuteSqlStatement<Entity>(
       {
         text: 'DELETE FROM entity WHERE id = $1;',
         values: [id],

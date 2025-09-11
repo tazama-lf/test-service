@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { PgQueryConfig } from '@tazama-lf/frms-coe-lib';
-import { handlePostExecuteSqlStatement } from '../../database.logic.service';
+import handleExecuteSqlStatement from '../../database.logic.service';
 import type { Connector, CrudRepository } from '../repository.base';
 import type { AccountHolder } from '../../interface/account.holder';
 
 export const AccountHolderRepo: CrudRepository<AccountHolder, Connector> = {
   list: async function ({ limit, offset, order, sort }): Promise<{ data: AccountHolder[]; total: number }> {
     sort ??= 'credttm';
-    const queryRes = await handlePostExecuteSqlStatement<{ evaluation: AccountHolder }>(
+    const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
       {
         text: `SELECT * FROM account_holder ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
         values: [offset, limit],
@@ -21,7 +21,7 @@ export const AccountHolderRepo: CrudRepository<AccountHolder, Connector> = {
   },
 
   get: async function ({ source, destination }): Promise<AccountHolder | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ evaluation: AccountHolder }>(
+    const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
       {
         text: 'SELECT * FROM account_holder WHERE source = $1 AND destination = $2;',
         values: [source, destination],
@@ -33,7 +33,7 @@ export const AccountHolderRepo: CrudRepository<AccountHolder, Connector> = {
   },
 
   create: async function (payload: AccountHolder): Promise<AccountHolder> {
-    const queryRes = await handlePostExecuteSqlStatement<{ evaluation: AccountHolder }>(
+    const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
       {
         text: 'INSERT INTO account_holder (source, destination, credttm) VALUES ($1, $2, $3) RETURNING source, destination, credttm;',
         values: [payload.source, payload.destination, payload.credttm],
@@ -44,7 +44,7 @@ export const AccountHolderRepo: CrudRepository<AccountHolder, Connector> = {
   },
 
   update: async function ({ source, destination }, payload: AccountHolder): Promise<AccountHolder | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ evaluation: AccountHolder }>(
+    const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
       {
         text: 'UPDATE account_holder SET credttm = $1, source = $2, destination = $3 WHERE source = $4 AND destination = $5 RETURNING source, destination, credttm;',
         values: [payload.credttm, payload.source, payload.destination, source, destination],
@@ -55,7 +55,7 @@ export const AccountHolderRepo: CrudRepository<AccountHolder, Connector> = {
   },
 
   remove: async function ({ source, destination }): Promise<boolean> {
-    const queryRes = await handlePostExecuteSqlStatement<{ evaluation: AccountHolder }>(
+    const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
       {
         text: 'DELETE FROM account_holder WHERE source = $1 AND destination = $2;',
         values: [source, destination],

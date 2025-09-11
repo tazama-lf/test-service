@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { PgQueryConfig } from '@tazama-lf/frms-coe-lib';
 import type { Account } from '@tazama-lf/frms-coe-lib/lib/interfaces';
-import { handlePostExecuteSqlStatement } from '../../database.logic.service';
+import handleExecuteSqlStatement from '../../database.logic.service';
 import type { CrudRepository } from '../repository.base';
 
 export const AccountRepo: CrudRepository<Account> = {
   list: async function ({ limit, offset, sort, order }): Promise<{ data: Account[]; total: number }> {
     sort ??= 'id';
-    const queryRes = await handlePostExecuteSqlStatement<{ id: Account }>(
+    const queryRes = await handleExecuteSqlStatement<{ id: Account }>(
       {
         text: `SELECT id FROM account ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
         values: [offset, limit],
@@ -21,7 +21,7 @@ export const AccountRepo: CrudRepository<Account> = {
   },
 
   get: async function (id: string | undefined): Promise<Account | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ id: Account }>(
+    const queryRes = await handleExecuteSqlStatement<{ id: Account }>(
       {
         text: 'SELECT id FROM account WHERE id = $1;',
         values: [id],
@@ -32,7 +32,7 @@ export const AccountRepo: CrudRepository<Account> = {
   },
 
   create: async function (payload: Account): Promise<Account> {
-    const queryRes = await handlePostExecuteSqlStatement<{ id: Account }>(
+    const queryRes = await handleExecuteSqlStatement<{ id: Account }>(
       {
         text: 'INSERT INTO account (id) VALUES ($1) RETURNING id;',
         values: [payload],
@@ -43,7 +43,7 @@ export const AccountRepo: CrudRepository<Account> = {
   },
 
   update: async function (id: string, payload: Account): Promise<Account | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ id: Account }>(
+    const queryRes = await handleExecuteSqlStatement<{ id: Account }>(
       {
         text: 'UPDATE account SET id = $1 WHERE id = $2 RETURNING id;',
         values: [payload, id],
@@ -54,7 +54,7 @@ export const AccountRepo: CrudRepository<Account> = {
   },
 
   remove: async function (id: string): Promise<boolean> {
-    const queryRes = await handlePostExecuteSqlStatement<{ id: Account }>(
+    const queryRes = await handleExecuteSqlStatement<{ id: Account }>(
       {
         text: 'DELETE FROM account WHERE id = $1;',
         values: [id],

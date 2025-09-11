@@ -3,7 +3,7 @@ import type { PgQueryConfig } from '@tazama-lf/frms-coe-lib';
 import type { QueryResult, QueryResultRow } from 'pg';
 import { databaseManager, loggerService } from '.';
 
-export const handlePostExecuteSqlStatement = async <T extends QueryResultRow>(
+const handleExecuteSqlStatement = async <T extends QueryResultRow>(
   queryConfig: PgQueryConfig,
   databaseName: string,
 ): Promise<QueryResult<T>> => {
@@ -27,7 +27,6 @@ export const handlePostExecuteSqlStatement = async <T extends QueryResultRow>(
       'handlePostExecuteSqlStatement()',
     );
     throw new Error(errorMessage.message);
-  } finally {
-    loggerService.log('Completed handling execution of the query from database service');
   }
 };
+export default handleExecuteSqlStatement;

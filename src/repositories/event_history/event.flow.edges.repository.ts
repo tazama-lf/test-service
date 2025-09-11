@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 import type { PgQueryConfig } from '@tazama-lf/frms-coe-lib';
 import type { Edge } from '@tazama-lf/frms-coe-lib/lib/interfaces';
-import { handlePostExecuteSqlStatement } from '../../database.logic.service';
+import handleExecuteSqlStatement from '../../database.logic.service';
 import type { Connector, CrudRepository } from '../repository.base';
 
 export const GovernedAsCreditorAccountByRepo: CrudRepository<Edge, Connector> = {
   list: async function ({ limit, offset, sort, order }): Promise<{ data: Edge[]; total: number }> {
     sort ??= 'id';
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: `SELECT * FROM governed_as_creditor_account_by ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
         values: [offset, limit],
@@ -21,7 +21,7 @@ export const GovernedAsCreditorAccountByRepo: CrudRepository<Edge, Connector> = 
   },
 
   get: async function ({ source, destination }): Promise<Edge | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'SELECT * FROM governed_as_creditor_account_by WHERE source = $1 AND destination = $2;',
         values: [source, destination],
@@ -33,7 +33,7 @@ export const GovernedAsCreditorAccountByRepo: CrudRepository<Edge, Connector> = 
   },
 
   create: async function (payload: Edge): Promise<Edge> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'INSERT INTO governed_as_creditor_account_by (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;',
         values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm],
@@ -44,7 +44,7 @@ export const GovernedAsCreditorAccountByRepo: CrudRepository<Edge, Connector> = 
   },
 
   update: async function ({ source, destination }, payload: Edge): Promise<Edge | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'UPDATE governed_as_creditor_account_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;',
         values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination],
@@ -55,7 +55,7 @@ export const GovernedAsCreditorAccountByRepo: CrudRepository<Edge, Connector> = 
   },
 
   remove: async function ({ source, destination }): Promise<boolean> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'DELETE FROM governed_as_creditor_account_by WHERE source = $1 AND destination = $2;',
         values: [source, destination],
@@ -69,7 +69,7 @@ export const GovernedAsCreditorAccountByRepo: CrudRepository<Edge, Connector> = 
 export const GovernedAsCreditorByRepo: CrudRepository<Edge, Connector> = {
   list: async function ({ limit, offset, sort, order }): Promise<{ data: Edge[]; total: number }> {
     sort ??= 'id';
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: `SELECT * FROM governed_as_creditor_by ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
         values: [offset, limit],
@@ -83,7 +83,7 @@ export const GovernedAsCreditorByRepo: CrudRepository<Edge, Connector> = {
   },
 
   get: async function ({ source, destination }): Promise<Edge | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'SELECT * FROM governed_as_creditor_by WHERE source = $1 AND destination = $2;',
         values: [source, destination],
@@ -95,7 +95,7 @@ export const GovernedAsCreditorByRepo: CrudRepository<Edge, Connector> = {
   },
 
   create: async function (payload: Edge): Promise<Edge> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'INSERT INTO governed_as_creditor_by (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;',
         values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm],
@@ -106,7 +106,7 @@ export const GovernedAsCreditorByRepo: CrudRepository<Edge, Connector> = {
   },
 
   update: async function ({ source, destination }, payload: Edge): Promise<Edge | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'UPDATE governed_as_creditor_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;',
         values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination],
@@ -117,7 +117,7 @@ export const GovernedAsCreditorByRepo: CrudRepository<Edge, Connector> = {
   },
 
   remove: async function ({ source, destination }): Promise<boolean> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'DELETE FROM governed_as_creditor_by WHERE source = $1 AND destination = $2;',
         values: [source, destination],
@@ -131,7 +131,7 @@ export const GovernedAsCreditorByRepo: CrudRepository<Edge, Connector> = {
 export const GovernedAsDebtorAccountByRepo: CrudRepository<Edge, Connector> = {
   list: async function ({ limit, offset, sort, order }): Promise<{ data: Edge[]; total: number }> {
     sort ??= 'id';
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: `SELECT * FROM governed_as_debtor_account_by ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
         values: [offset, limit],
@@ -145,7 +145,7 @@ export const GovernedAsDebtorAccountByRepo: CrudRepository<Edge, Connector> = {
   },
 
   get: async function ({ source, destination }): Promise<Edge | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'SELECT * FROM governed_as_debtor_account_by WHERE source = $1 AND destination = $2;',
         values: [source, destination],
@@ -157,7 +157,7 @@ export const GovernedAsDebtorAccountByRepo: CrudRepository<Edge, Connector> = {
   },
 
   create: async function (payload: Edge): Promise<Edge> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'INSERT INTO governed_as_debtor_account_by (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;',
         values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm],
@@ -168,7 +168,7 @@ export const GovernedAsDebtorAccountByRepo: CrudRepository<Edge, Connector> = {
   },
 
   update: async function ({ source, destination }, payload: Edge): Promise<Edge | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'UPDATE governed_as_debtor_account_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;',
         values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination],
@@ -179,7 +179,7 @@ export const GovernedAsDebtorAccountByRepo: CrudRepository<Edge, Connector> = {
   },
 
   remove: async function ({ source, destination }): Promise<boolean> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'DELETE FROM governed_as_debtor_account_by WHERE source = $1 AND destination = $2;',
         values: [source, destination],
@@ -193,7 +193,7 @@ export const GovernedAsDebtorAccountByRepo: CrudRepository<Edge, Connector> = {
 export const GovernedAsDebtorByRepo: CrudRepository<Edge, Connector> = {
   list: async function ({ limit, offset, sort, order }): Promise<{ data: Edge[]; total: number }> {
     sort ??= 'id';
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: `SELECT * FROM governed_as_debtor_by ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
         values: [offset, limit],
@@ -207,7 +207,7 @@ export const GovernedAsDebtorByRepo: CrudRepository<Edge, Connector> = {
   },
 
   get: async function ({ source, destination }): Promise<Edge | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'SELECT * FROM governed_as_debtor_by WHERE source = $1 AND destination = $2;',
         values: [source, destination],
@@ -219,7 +219,7 @@ export const GovernedAsDebtorByRepo: CrudRepository<Edge, Connector> = {
   },
 
   create: async function (payload: Edge): Promise<Edge> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'INSERT INTO governed_as_debtor_by (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;',
         values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm],
@@ -230,7 +230,7 @@ export const GovernedAsDebtorByRepo: CrudRepository<Edge, Connector> = {
   },
 
   update: async function ({ source, destination }, payload: Edge): Promise<Edge | null> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'UPDATE governed_as_debtor_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;',
         values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination],
@@ -241,7 +241,7 @@ export const GovernedAsDebtorByRepo: CrudRepository<Edge, Connector> = {
   },
 
   remove: async function ({ source, destination }): Promise<boolean> {
-    const queryRes = await handlePostExecuteSqlStatement<{ edge: Edge }>(
+    const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
         text: 'DELETE FROM governed_as_debtor_by WHERE source = $1 AND destination = $2;',
         values: [source, destination],
