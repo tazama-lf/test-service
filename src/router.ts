@@ -24,12 +24,26 @@ import {
   Pacs008Schema,
   ReportSchema,
   TransactionRelationshipSchema,
+  VerticleSchema,
 } from './schemas/typebox.schemas';
 import { buildCrudPlugin } from './utils/crud-schema';
+import GetConditionsFromDBPostRequest from './utils/verticals.get.query';
 
 function Routes(fastify: FastifyInstance): void {
   fastify.get('/', () => 'UP');
   fastify.get('/health', () => 'UP');
+
+  //-- test utilities
+  fastify.get(
+    '/v1/test/util/conditions/edges/:id/:type',
+    {
+      schema: {
+        tags: ['utils'],
+        params: VerticleSchema,
+      },
+    },
+    GetConditionsFromDBPostRequest,
+  );
   //-- evaluation
   fastify.register(
     buildCrudPlugin({

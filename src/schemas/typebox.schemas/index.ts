@@ -8,6 +8,7 @@ import { ReportSchema } from './AlertSchema';
 import { ConditionSchema, AccountSchema, EntitySchema, EdgeSchema } from './EventHistorySchema';
 import { TransactionRelationshipSchema } from './TransactionSchema';
 import { AccountHolderSchema } from './AccountHolderSchema';
+import { VerticleSchema } from './GetConditionVerticleSchema';
 export {
   Pacs002Schema,
   Pacs008Schema,
@@ -21,4 +22,5 @@ export {
   TransactionRelationshipSchema,
   EdgeSchema,
   AccountHolderSchema,
+  VerticleSchema,
 };
