@@ -27,7 +27,7 @@ import {
   VerticleSchema,
 } from './schemas/typebox.schemas';
 import { buildCrudPlugin } from './utils/crud-schema';
-import GetConditionsFromDBPostRequest from './utils/verticals.get.query';
+import { GetConditionsFromDBPostRequest, GetActiveConditionsFromDBPostRequest } from './utils/verticals.get.query';
 
 function Routes(fastify: FastifyInstance): void {
   fastify.get('/', () => 'UP');
@@ -43,6 +43,16 @@ function Routes(fastify: FastifyInstance): void {
       },
     },
     GetConditionsFromDBPostRequest,
+  );
+  fastify.get(
+    '/v1/test/util/active/conditions/edges/:id/:type',
+    {
+      schema: {
+        tags: ['utils'],
+        params: VerticleSchema,
+      },
+    },
+    GetActiveConditionsFromDBPostRequest,
   );
   //-- evaluation
   fastify.register(
