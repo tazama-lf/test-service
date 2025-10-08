@@ -9,9 +9,13 @@ import { ConditionSchema, AccountSchema, EntitySchema, EdgeSchema } from './Even
 import { TransactionRelationshipSchema } from './TransactionSchema';
 import { AccountHolderSchema } from './AccountHolderSchema';
 import { VerticleSchema } from './GetConditionVerticleSchema';
+import { Pain001Schema } from './Pain001Entity';
+import { Pain013Schema } from './Pain013Entity';
 export {
   Pacs002Schema,
   Pacs008Schema,
+  Pain001Schema,
+  Pain013Schema,
   NetworkMapSchema,
   RuleSchema,
   TypologySchema,

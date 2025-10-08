@@ -12,6 +12,8 @@ import {
   GovernedAsDebtorByRepo,
   Pacs002Repo,
   Pacs008Repo,
+  Pain001Repo,
+  Pain013Repo,
   TransactionRepo,
 } from './repositories';
 import {
@@ -22,6 +24,8 @@ import {
   EntitySchema,
   Pacs002Schema,
   Pacs008Schema,
+  Pain001Schema,
+  Pain013Schema,
   ReportSchema,
   TransactionRelationshipSchema,
   VerticleSchema,
@@ -66,9 +70,17 @@ function Routes(fastify: FastifyInstance): void {
   //-- raw_history
   fastify.register(
     buildCrudPlugin({
-      prefix: '/v1/test/raw_history/pacs002',
-      repo: Pacs002Repo,
-      schemas: { Entity: Pacs002Schema, Create: Pacs002Schema, Update: Pacs002Schema },
+      prefix: '/v1/test/raw_history/pain001',
+      repo: Pain001Repo,
+      schemas: { Entity: Pain001Schema, Create: Pain001Schema, Update: Pain001Schema },
+    }),
+  );
+
+  fastify.register(
+    buildCrudPlugin({
+      prefix: '/v1/test/raw_history/pain013',
+      repo: Pain013Repo,
+      schemas: { Entity: Pain013Schema, Create: Pain013Schema, Update: Pain013Schema },
     }),
   );
 
@@ -77,6 +89,14 @@ function Routes(fastify: FastifyInstance): void {
       prefix: '/v1/test/raw_history/pacs008',
       repo: Pacs008Repo,
       schemas: { Entity: Pacs008Schema, Create: Pacs008Schema, Update: Pacs008Schema },
+    }),
+  );
+
+  fastify.register(
+    buildCrudPlugin({
+      prefix: '/v1/test/raw_history/pacs002',
+      repo: Pacs002Repo,
+      schemas: { Entity: Pacs002Schema, Create: Pacs002Schema, Update: Pacs002Schema },
     }),
   );
 

@@ -13,7 +13,11 @@ import {
   GovernedAsDebtorByRepo,
 } from './event_history/event.flow.edges.repository';
 import { EvaluationRepo } from './evaluation/evaluation.repository';
+import { Pain001Repo } from './raw_history/Pain.001.001.11.repository';
+import { Pain013Repo } from './raw_history/Pain.013.001.09.repository';
 export {
+  Pain001Repo,
+  Pain013Repo,
   Pacs002Repo,
   Pacs008Repo,
   AccountHolderRepo,
