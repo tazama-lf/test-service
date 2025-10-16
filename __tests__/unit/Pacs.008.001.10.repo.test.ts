@@ -34,7 +34,7 @@ describe('Pacs008Repo', () => {
       expect(dbCall).toHaveBeenCalledTimes(1);
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: expect.stringContaining('SELECT document FROM pacs008 ORDER BY'),
+          text: expect.stringContaining('SELECT document FROM pacs008 WHERE tenantId = $3 ORDER BY TxTp DESC OFFSET $1 LIMIT $2;'),
           values: [0, 10],
         },
         'raw_history',

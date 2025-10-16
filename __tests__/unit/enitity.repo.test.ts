@@ -38,7 +38,9 @@ describe('EntityRepo', () => {
       expect(dbCall).toHaveBeenCalledTimes(1);
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: expect.stringContaining('SELECT id, credttm as "creDtTm" FROM entity ORDER BY'),
+          text: expect.stringContaining(
+            'SELECT id, credttm as "creDtTm" FROM entity WHERE tenantId = $3 ORDER BY creDtTm DESC OFFSET $1 LIMIT $2',
+          ),
           values: [0, 10],
         },
         'event_history',

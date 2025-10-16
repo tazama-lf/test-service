@@ -34,7 +34,9 @@ describe('ConditionRepo', () => {
       expect(dbCall).toHaveBeenCalledTimes(1);
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: expect.stringContaining('SELECT condition FROM condition ORDER BY'),
+          text: expect.stringContaining(
+            'SELECT condition FROM condition WHERE tenantId = $4 ORDER BY condition->>$3 DESC OFFSET $1 LIMIT $2',
+          ),
           values: [0, 10, 'creDtTm'],
         },
         'event_history',

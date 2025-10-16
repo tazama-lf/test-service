@@ -34,7 +34,7 @@ describe('AccountRepo', () => {
       expect(dbCall).toHaveBeenCalledTimes(1);
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: expect.stringContaining('SELECT id FROM account ORDER BY'),
+          text: expect.stringContaining('SELECT id FROM account WHERE tenantId = $3 ORDER BY id DESC OFFSET $1 LIMIT $2;'),
           values: [0, 10],
         },
         'event_history',

@@ -34,7 +34,9 @@ describe('EvaluationRepo', () => {
       expect(dbCall).toHaveBeenCalledTimes(1);
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: expect.stringContaining('SELECT evaluation FROM evaluation ORDER BY'),
+          text: expect.stringContaining(
+            'SELECT evaluation FROM evaluation WHERE tenantId = $4 ORDER BY evaluation->>$3 DESC OFFSET $1 LIMIT $2;',
+          ),
           values: [0, 10, 'timestamp'],
         },
         'evaluation',

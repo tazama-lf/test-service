@@ -38,7 +38,7 @@ describe('TransactionRepo', () => {
       expect(dbCall).toHaveBeenCalledTimes(1);
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: expect.stringContaining('SELECT * FROM transaction ORDER BY'),
+          text: expect.stringContaining('SELECT * FROM transaction WHERE tenantId = $3 ORDER BY destination DESC OFFSET $1 LIMIT $2;'),
           values: [0, 10],
         },
         'event_history',

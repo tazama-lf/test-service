@@ -33,7 +33,7 @@ describe('Pacs002Repo', () => {
       expect(dbCall).toHaveBeenCalledTimes(1);
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: expect.stringContaining('SELECT document FROM pacs002 ORDER BY'),
+          text: expect.stringContaining('SELECT document FROM pacs002 WHERE tenantId = $3 ORDER BY TxTp DESC OFFSET $1 LIMIT $2;'),
           values: [0, 10],
         },
         'raw_history',
@@ -76,7 +76,7 @@ describe('Pacs002Repo', () => {
       });
 
       const [[cfg]] = dbCall.mock.calls;
-      expect(cfg.text).toContain('SELECT document FROM pacs002 ORDER BY TxTp DESC OFFSET $1 LIMIT $2;');
+      expect(cfg.text).toContain('SELECT document FROM pacs002 WHERE tenantId = $3 ORDER BY TxTp DESC OFFSET $1 LIMIT $2;');
       expect(cfg.values).toEqual([9, 3]);
     });
 

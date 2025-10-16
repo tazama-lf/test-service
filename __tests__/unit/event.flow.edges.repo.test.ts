@@ -49,7 +49,7 @@ describe('Governed repos', () => {
 
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: expect.stringContaining(`SELECT * FROM ${table} ORDER BY`),
+            text: expect.stringContaining(`SELECT * FROM ${table} WHERE tenantId = $3 ORDER BY id DESC OFFSET $1 LIMIT $2;`),
             values: [0, 10],
           },
           'event_history',
@@ -204,7 +204,7 @@ describe('Governed repos', () => {
 
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: expect.stringContaining(`SELECT * FROM ${table} ORDER BY`),
+            text: expect.stringContaining(`SELECT * FROM ${table} WHERE tenantId = $3 ORDER BY id DESC OFFSET $1 LIMIT $2;`),
             values: [0, 10],
           },
           'event_history',
@@ -308,7 +308,7 @@ describe('Governed repos', () => {
         const res = await GovernedAsDebtorAccountByRepo.list({ limit: 10, offset: 0, sort: 'id', order: 'DESC' });
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: expect.stringContaining(`SELECT * FROM ${table} ORDER BY`),
+            text: expect.stringContaining(`SELECT * FROM ${table} WHERE tenantId = $3 ORDER BY id DESC OFFSET $1 LIMIT $2;`),
             values: [0, 10],
           },
           'event_history',
@@ -411,7 +411,10 @@ describe('Governed repos', () => {
         dbCall.mockResolvedValue(ok([{ edge: edge({ source: 'S10' }) }], 2));
         const res = await GovernedAsDebtorByRepo.list({ limit: 10, offset: 0, sort: 'id', order: 'DESC' });
         expect(dbCall).toHaveBeenCalledWith(
-          { text: expect.stringContaining(`SELECT * FROM ${table} ORDER BY`), values: [0, 10] },
+          {
+            text: expect.stringContaining(`SELECT * FROM ${table} WHERE tenantId = $3 ORDER BY id DESC OFFSET $1 LIMIT $2;`),
+            values: [0, 10],
+          },
           'event_history',
         );
         expect(res).toEqual({ data: [edge({ source: 'S10' })], total: 2 });
