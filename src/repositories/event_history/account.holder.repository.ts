@@ -5,12 +5,12 @@ import type { Connector, CrudRepository } from '../repository.base';
 import type { AccountHolder } from '../../interface/account.holder';
 
 export const AccountHolderRepo: CrudRepository<AccountHolder, Connector> = {
-  list: async function ({ limit, offset, order, sort }): Promise<{ data: AccountHolder[]; total: number }> {
+  list: async function ({ limit, offset, order, sort, tenantId }): Promise<{ data: AccountHolder[]; total: number }> {
     sort ??= 'credttm';
     const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
       {
-        text: `SELECT * FROM account_holder ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
-        values: [offset, limit],
+        text: `SELECT * FROM account_holder WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
+        values: [offset, limit, tenantId],
       },
       'event_history',
     );

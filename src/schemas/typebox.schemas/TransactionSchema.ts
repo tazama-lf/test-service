@@ -5,6 +5,7 @@ export type TransactionRelationshipSchema = Static<typeof TransactionRelationshi
 export const TransactionRelationshipSchema = Type.Object({
   source: Type.String(),
   destination: Type.String(),
+  tenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
   transaction: Type.Object({
     TxTp: Type.String(),
     MsgId: Type.String(),

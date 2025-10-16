@@ -5,6 +5,7 @@ export interface ListQuery<TSort extends string = string> {
   offset?: number; // default 0
   sort?: TSort; // field name
   order?: 'ASC' | 'DESC';
+  tenantId?: string; // tenant identifier
   q?: string; // free-text filter (optional)
   filters?: Record<string, string>; // exact-match filters
 }

@@ -17,6 +17,7 @@ export const AlertSchema = Type.Object({
 export type ReportSchema = Static<typeof ReportSchema>;
 export const ReportSchema = Type.Object({
   transactionID: Type.String(),
+  tenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
   report: AlertSchema,
   transaction: Pacs002Schema,
   networkMap: NetworkMapSchema,

@@ -5,12 +5,12 @@ import handleExecuteSqlStatement from '../../database.logic.service';
 import type { Connector, CrudRepository } from '../repository.base';
 
 export const GovernedAsCreditorAccountByRepo: CrudRepository<Edge, Connector> = {
-  list: async function ({ limit, offset, sort, order }): Promise<{ data: Edge[]; total: number }> {
+  list: async function ({ limit, offset, sort, order, tenantId }): Promise<{ data: Edge[]; total: number }> {
     sort ??= 'id';
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: `SELECT * FROM governed_as_creditor_account_by ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
-        values: [offset, limit],
+        text: `SELECT * FROM governed_as_creditor_account_by WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
+        values: [offset, limit, tenantId],
       },
       'event_history',
     );
@@ -67,12 +67,12 @@ export const GovernedAsCreditorAccountByRepo: CrudRepository<Edge, Connector> = 
 };
 
 export const GovernedAsCreditorByRepo: CrudRepository<Edge, Connector> = {
-  list: async function ({ limit, offset, sort, order }): Promise<{ data: Edge[]; total: number }> {
+  list: async function ({ limit, offset, sort, order, tenantId }): Promise<{ data: Edge[]; total: number }> {
     sort ??= 'id';
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: `SELECT * FROM governed_as_creditor_by ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
-        values: [offset, limit],
+        text: `SELECT * FROM governed_as_creditor_by WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
+        values: [offset, limit, tenantId],
       },
       'event_history',
     );
@@ -129,12 +129,12 @@ export const GovernedAsCreditorByRepo: CrudRepository<Edge, Connector> = {
 };
 
 export const GovernedAsDebtorAccountByRepo: CrudRepository<Edge, Connector> = {
-  list: async function ({ limit, offset, sort, order }): Promise<{ data: Edge[]; total: number }> {
+  list: async function ({ limit, offset, sort, order, tenantId }): Promise<{ data: Edge[]; total: number }> {
     sort ??= 'id';
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: `SELECT * FROM governed_as_debtor_account_by ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
-        values: [offset, limit],
+        text: `SELECT * FROM governed_as_debtor_account_by WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
+        values: [offset, limit, tenantId],
       },
       'event_history',
     );
@@ -191,12 +191,12 @@ export const GovernedAsDebtorAccountByRepo: CrudRepository<Edge, Connector> = {
 };
 
 export const GovernedAsDebtorByRepo: CrudRepository<Edge, Connector> = {
-  list: async function ({ limit, offset, sort, order }): Promise<{ data: Edge[]; total: number }> {
+  list: async function ({ limit, offset, sort, order, tenantId }): Promise<{ data: Edge[]; total: number }> {
     sort ??= 'id';
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: `SELECT * FROM governed_as_debtor_by ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
-        values: [offset, limit],
+        text: `SELECT * FROM governed_as_debtor_by WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
+        values: [offset, limit, tenantId],
       },
       'event_history',
     );

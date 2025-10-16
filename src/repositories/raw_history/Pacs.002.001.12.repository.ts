@@ -5,12 +5,12 @@ import handleExecuteSqlStatement from '../../database.logic.service';
 import type { CrudRepository } from '../repository.base';
 
 export const Pacs002Repo: CrudRepository<Pacs002> = {
-  list: async function ({ limit, offset, order, sort }): Promise<{ data: Pacs002[]; total: number }> {
+  list: async function ({ limit, offset, order, sort, tenantId }): Promise<{ data: Pacs002[]; total: number }> {
     sort ??= 'TxTp';
     const queryRes = await handleExecuteSqlStatement<{ document: Pacs002 }>(
       {
-        text: `SELECT document FROM pacs002 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
-        values: [offset, limit],
+        text: `SELECT document FROM pacs002 WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
+        values: [offset, limit, tenantId],
       },
       'raw_history',
     );

@@ -11,12 +11,12 @@ interface Transaction {
 }
 
 export const TransactionRepo: CrudRepository<Transaction> = {
-  list: async function ({ limit, offset, order, sort }): Promise<{ data: Transaction[]; total: number }> {
+  list: async function ({ limit, offset, order, sort, tenantId }): Promise<{ data: Transaction[]; total: number }> {
     sort ??= 'destination';
     const queryRes = await handleExecuteSqlStatement<Transaction>(
       {
-        text: `SELECT * FROM transaction ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
-        values: [offset, limit],
+        text: `SELECT * FROM transaction WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
+        values: [offset, limit, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );

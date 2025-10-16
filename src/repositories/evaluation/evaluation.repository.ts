@@ -5,12 +5,12 @@ import handleExecuteSqlStatement from '../../database.logic.service';
 import type { CrudRepository } from '../repository.base';
 
 export const EvaluationRepo: CrudRepository<Alert> = {
-  list: async function ({ limit, offset, sort, order }): Promise<{ data: Alert[]; total: number }> {
+  list: async function ({ limit, offset, sort, order, tenantId }): Promise<{ data: Alert[]; total: number }> {
     sort ??= 'timestamp';
     const queryRes = await handleExecuteSqlStatement<{ evaluation: Alert }>(
       {
-        text: `SELECT evaluation FROM evaluation ORDER BY evaluation->>$3 ${order} OFFSET $1 LIMIT $2;`,
-        values: [offset, limit, sort],
+        text: `SELECT evaluation FROM evaluation WHERE tenantId = $4 ORDER BY evaluation->>$3 ${order} OFFSET $1 LIMIT $2;`,
+        values: [offset, limit, sort, tenantId],
       },
       'evaluation',
     );

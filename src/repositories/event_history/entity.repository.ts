@@ -5,12 +5,12 @@ import handleExecuteSqlStatement from '../../database.logic.service';
 import type { CrudRepository } from '../repository.base';
 
 export const EntityRepo: CrudRepository<Entity> = {
-  list: async function ({ limit, offset, sort, order }): Promise<{ data: Entity[]; total: number }> {
+  list: async function ({ limit, offset, sort, order, tenantId }): Promise<{ data: Entity[]; total: number }> {
     sort ??= 'creDtTm';
     const queryRes = await handleExecuteSqlStatement<Entity>(
       {
-        text: `SELECT id, credttm as "creDtTm" FROM entity ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2`,
-        values: [offset, limit],
+        text: `SELECT id, credttm as "creDtTm" FROM entity WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2`,
+        values: [offset, limit, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );

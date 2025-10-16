@@ -235,6 +235,7 @@ const CstmrCdtTrfInitn = Type.Object({
 export type Pain001Schema = Static<typeof Pain001Schema>;
 export const Pain001Schema = Type.Object({
   TxTp: Type.String(),
+  tenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
   CstmrCdtTrfInitn,
   DataCache: Type.Optional(DataCache),
 });
