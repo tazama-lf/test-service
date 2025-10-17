@@ -98,12 +98,12 @@ describe('Pacs002Repo', () => {
     it('returns document when found', async () => {
       dbCall.mockResolvedValue(ok([{ document: { id: 'abc', x: 1 } }]));
 
-      const res = await Pacs002Repo.get('abc');
+      const res = await Pacs002Repo.get({ id: 'abc', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'SELECT document FROM pacs002 WHERE messageid = $1;',
-          values: ['abc'],
+          text: 'SELECT document FROM pacs002 WHERE messageid = $1 AND tenantid = $2;',
+          values: ['abc', 'tenantA'],
         },
         'raw_history',
       );
@@ -113,7 +113,7 @@ describe('Pacs002Repo', () => {
     it('returns null when not found', async () => {
       dbCall.mockResolvedValue(ok([]));
 
-      const res = await Pacs002Repo.get('nope');
+      const res = await Pacs002Repo.get({ id: 'missing', tenantId: 'tenantA' });
       expect(res).toBeNull();
     });
   });
@@ -140,12 +140,12 @@ describe('Pacs002Repo', () => {
     it('returns updated document when rowCount > 0', async () => {
       dbCall.mockResolvedValue({ rows: [{ document: { id: 'u1' } }], rowCount: 1 });
 
-      const res = await Pacs002Repo.update('msg-1', { id: 'u1' } as any);
+      const res = await Pacs002Repo.update({ id: 'msg-1', tenantId: 'tenantA' }, { id: 'u1' } as any);
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'UPDATE pacs002 SET document = $1 WHERE messageid = $2 RETURNING document;',
-          values: [{ id: 'u1' }, 'msg-1'],
+          text: 'UPDATE pacs002 SET document = $1 WHERE messageid = $2 AND tenantid = $3 RETURNING document;',
+          values: [{ id: 'u1' }, 'msg-1', 'tenantA'],
         },
         'raw_history',
       );
@@ -155,7 +155,7 @@ describe('Pacs002Repo', () => {
     it('returns null when rowCount = 0', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await Pacs002Repo.update('msg-1', { id: 'u1' } as any);
+      const res = await Pacs002Repo.update({ id: 'msg-1', tenantId: 'tenantA' }, { id: 'u1' } as any);
       expect(res).toBeNull();
     });
   });
@@ -164,12 +164,12 @@ describe('Pacs002Repo', () => {
     it('returns true when a row was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
 
-      const res = await Pacs002Repo.remove('msg-1');
+      const res = await Pacs002Repo.remove({ id: 'msg-1', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'DELETE FROM pacs002 WHERE messageid = $1;',
-          values: ['msg-1'],
+          text: 'DELETE FROM pacs002 WHERE messageid = $1 AND tenantid = $2;',
+          values: ['msg-1', 'tenantA'],
         },
         'raw_history',
       );
@@ -179,7 +179,7 @@ describe('Pacs002Repo', () => {
     it('returns false when nothing was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await Pacs002Repo.remove('msg-1');
+      const res = await Pacs002Repo.remove({ id: 'msg-1', tenantId: 'tenantA' });
       expect(res).toBe(false);
     });
   });

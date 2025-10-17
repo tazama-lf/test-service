@@ -99,12 +99,12 @@ describe('AccountHolderRepo', () => {
     it('returns account holder when found', async () => {
       dbCall.mockResolvedValue(ok([{ evaluation: { source: 'S', destination: 'D', credttm: 'T' } }]));
 
-      const res = await AccountHolderRepo.get({ source: 'S', destination: 'D' });
+      const res = await AccountHolderRepo.get({ source: 'S', destination: 'D', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'SELECT * FROM account_holder WHERE source = $1 AND destination = $2;',
-          values: ['S', 'D'],
+          text: 'SELECT * FROM account_holder WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+          values: ['S', 'D', 'tenantA'],
         },
         'event_history',
       );
@@ -114,7 +114,7 @@ describe('AccountHolderRepo', () => {
     it('returns null when not found', async () => {
       dbCall.mockResolvedValue(ok([]));
 
-      const res = await AccountHolderRepo.get({ source: 'S', destination: 'D' });
+      const res = await AccountHolderRepo.get({ source: 'S', destination: 'D', tenantId: 'tenantA' });
       expect(res).toBeNull();
     });
   });
@@ -123,13 +123,13 @@ describe('AccountHolderRepo', () => {
     it('inserts and returns account holder', async () => {
       dbCall.mockResolvedValue(ok([{ evaluation: { source: 'S', destination: 'D', credttm: 'T' } }]));
 
-      const payload = { source: 'S', destination: 'D', credttm: 'T' } as any;
+      const payload = { source: 'S', destination: 'D', credttm: 'T', tenantId: 'tenantA' } as any;
       const res = await AccountHolderRepo.create(payload);
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'INSERT INTO account_holder (source, destination, credttm) VALUES ($1, $2, $3) RETURNING source, destination, credttm;',
-          values: ['S', 'D', 'T'],
+          text: 'INSERT INTO account_holder (source, destination, credttm, tenantid) VALUES ($1, $2, $3, $4) RETURNING *;',
+          values: ['S', 'D', 'T', 'tenantA'],
         },
         'event_history',
       );
@@ -144,16 +144,17 @@ describe('AccountHolderRepo', () => {
         rowCount: 1,
       });
 
-      const res = await AccountHolderRepo.update({ source: 'S', destination: 'D' }, {
+      const res = await AccountHolderRepo.update({ source: 'S', destination: 'D', tenantId: 'tenantA' }, {
         source: 'S2',
         destination: 'D2',
+        tenantId: 'tenantB',
         credttm: 'T2',
       } as any);
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'UPDATE account_holder SET credttm = $1, source = $2, destination = $3 WHERE source = $4 AND destination = $5 RETURNING source, destination, credttm;',
-          values: ['T2', 'S2', 'D2', 'S', 'D'],
+          text: 'UPDATE account_holder SET credttm = $1, source = $2, destination = $3, tenantid = $4 WHERE source = $5 AND destination = $6 AND tenantid = $7 RETURNING *;',
+          values: ['T2', 'S2', 'D2', 'tenantB', 'S', 'D', 'tenantA'],
         },
         'event_history',
       );
@@ -163,7 +164,7 @@ describe('AccountHolderRepo', () => {
     it('returns null when rowCount = 0', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await AccountHolderRepo.update({ source: 'S', destination: 'D' }, {
+      const res = await AccountHolderRepo.update({ source: 'S', destination: 'D', tenantId: 'tenantA' }, {
         source: 'S2',
         destination: 'D2',
         credttm: 'T2',
@@ -176,12 +177,12 @@ describe('AccountHolderRepo', () => {
     it('returns true when a row was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
 
-      const res = await AccountHolderRepo.remove({ source: 'S', destination: 'D' });
+      const res = await AccountHolderRepo.remove({ source: 'S', destination: 'D', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'DELETE FROM account_holder WHERE source = $1 AND destination = $2;',
-          values: ['S', 'D'],
+          text: 'DELETE FROM account_holder WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+          values: ['S', 'D', 'tenantA'],
         },
         'event_history',
       );
@@ -191,7 +192,7 @@ describe('AccountHolderRepo', () => {
     it('returns false when nothing was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await AccountHolderRepo.remove({ source: 'S', destination: 'D' });
+      const res = await AccountHolderRepo.remove({ source: 'S', destination: 'D', tenantId: 'tenantA' });
       expect(res).toBe(false);
     });
   });

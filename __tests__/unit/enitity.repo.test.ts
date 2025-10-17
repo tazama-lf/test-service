@@ -105,12 +105,12 @@ describe('EntityRepo', () => {
     it('returns entity when found', async () => {
       dbCall.mockResolvedValue(ok([{ id: 'E1', creDtTm: 'T' }]));
 
-      const res = await EntityRepo.get('E1');
+      const res = await EntityRepo.get({ id: 'E1', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'SELECT id, credttm as "creDtTm" FROM entity WHERE id = $1;',
-          values: ['E1'],
+          text: 'SELECT id, credttm as "creDtTm" FROM entity WHERE id = $1 AND tenantid = $2;',
+          values: ['E1', 'tenantA'],
         },
         'event_history',
       );
@@ -120,7 +120,7 @@ describe('EntityRepo', () => {
     it('returns null when not found', async () => {
       dbCall.mockResolvedValue(ok([]));
 
-      const res = await EntityRepo.get('missing');
+      const res = await EntityRepo.get({ id: 'E1', tenantId: 'tenantA' });
       expect(res).toBeNull();
     });
   });
@@ -130,12 +130,12 @@ describe('EntityRepo', () => {
       // Note: repo expects { entity: Entity } in rows for create
       dbCall.mockResolvedValue(ok([{ entity: { id: 'NEW', creDtTm: 'T0' } }]));
 
-      const payload = { id: 'NEW', creDtTm: 'T0' } as any;
+      const payload = { id: 'NEW', creDtTm: 'T0', tenantId: 'DEFAULT' } as any;
       const res = await EntityRepo.create(payload);
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'INSERT INTO entity (id, creDtTm) VALUES ($1,$2) RETURNING id, credttm as "creDtTm";',
+          text: 'INSERT INTO entity (id, creDtTm, tenantid) VALUES ($1,$2,$3) RETURNING id, credttm as "creDtTm";',
           values: ['NEW', 'T0'],
         },
         'event_history',
@@ -151,12 +151,12 @@ describe('EntityRepo', () => {
         rowCount: 1,
       });
 
-      const res = await EntityRepo.update('OLD', { id: 'U', creDtTm: 'TU' } as any);
+      const res = await EntityRepo.update({ id: 'OLD', tenantId: 'tenantA' }, { id: 'U', creDtTm: 'TU', TenantId: 'DEFAULT' } as any);
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'UPDATE entity SET id = $1, creDtTm = $2 WHERE id = $3 RETURNING id, credttm AS "creDtTm";',
-          values: ['U', 'TU', 'OLD'],
+          text: 'UPDATE entity SET id = $1, creDtTm = $2, tenantid = $3 WHERE id = $4 AND tenantid = $5 RETURNING id, credttm AS "creDtTm", tenantid;',
+          values: ['U', 'TU', 'DEFAULT', 'OLD', 'tenantA'],
         },
         'event_history',
       );
@@ -166,7 +166,7 @@ describe('EntityRepo', () => {
     it('returns null when rowCount = 0', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await EntityRepo.update('OLD', { id: 'U', creDtTm: 'TU' } as any);
+      const res = await EntityRepo.update({ id: 'E1', tenantId: 'tenantA' }, { id: 'U', creDtTm: 'TU' } as any);
       expect(res).toBeNull();
     });
   });
@@ -175,12 +175,12 @@ describe('EntityRepo', () => {
     it('returns true when a row was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
 
-      const res = await EntityRepo.remove('E1');
+      const res = await EntityRepo.remove({ id: 'E1', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'DELETE FROM entity WHERE id = $1;',
-          values: ['E1'],
+          text: 'DELETE FROM entity WHERE id = $1 AND tenantid = $2;',
+          values: ['E1', 'tenantA'],
         },
         'event_history',
       );
@@ -190,7 +190,7 @@ describe('EntityRepo', () => {
     it('returns false when nothing was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await EntityRepo.remove('E1');
+      const res = await EntityRepo.remove({ id: 'E1', tenantId: 'tenantA' });
       expect(res).toBe(false);
     });
   });

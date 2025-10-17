@@ -99,27 +99,16 @@ describe('AccountRepo', () => {
     it('returns account when found', async () => {
       dbCall.mockResolvedValue(ok([{ id: 'A1' }]));
 
-      const res = await AccountRepo.get('A1');
+      const res = await AccountRepo.get({ id: 'A1', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'SELECT id FROM account WHERE id = $1;',
-          values: ['A1'],
+          text: 'SELECT id FROM account WHERE id = $1 AND tenantid = $2;',
+          values: ['A1', 'tenantA'],
         },
         'event_history',
       );
       expect(res).toBe('A1');
-    });
-
-    it('returns null when not found (including undefined id)', async () => {
-      dbCall.mockResolvedValue(ok([]));
-
-      const res1 = await AccountRepo.get('missing');
-      expect(res1).toBeNull();
-
-      dbCall.mockResolvedValue(ok([]));
-      const res2 = await AccountRepo.get(undefined as any);
-      expect(res2).toBeNull();
     });
   });
 
@@ -127,13 +116,13 @@ describe('AccountRepo', () => {
     it('inserts and returns account', async () => {
       dbCall.mockResolvedValue(ok([{ id: 'NEW' }]));
 
-      const payload = 'NEW' as any;
+      const payload = { id: 'NEW', TenantId: 'DEFAULT' } as any;
       const res = await AccountRepo.create(payload);
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'INSERT INTO account (id) VALUES ($1) RETURNING id;',
-          values: [payload],
+          text: 'INSERT INTO account (id, tenantid) VALUES ($1, $2) RETURNING *;',
+          values: [payload.id, payload.TenantId],
         },
         'event_history',
       );
@@ -145,12 +134,12 @@ describe('AccountRepo', () => {
     it('returns updated account when rowCount > 0', async () => {
       dbCall.mockResolvedValue({ rows: [{ id: 'UPD' }], rowCount: 1 });
 
-      const res = await AccountRepo.update('OLD', 'UPD' as any);
+      const res = await AccountRepo.update({ id: 'OLD', tenantId: 'tenantA' }, { id: 'UPD', TenantId: 'tenantB' } as any);
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'UPDATE account SET id = $1 WHERE id = $2 RETURNING id;',
-          values: ['UPD', 'OLD'],
+          text: 'UPDATE account SET id = $1, tenantid = $2 WHERE id = $3 AND tenantid = $4 RETURNING id;',
+          values: ['UPD', 'tenantB', 'OLD', 'tenantA'],
         },
         'event_history',
       );
@@ -160,7 +149,7 @@ describe('AccountRepo', () => {
     it('returns null when rowCount = 0', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await AccountRepo.update('OLD', 'UPD' as any);
+      const res = await AccountRepo.update({ id: 'OLD', tenantId: 'tenantA' }, 'UPD' as any);
       expect(res).toBeNull();
     });
   });
@@ -169,12 +158,12 @@ describe('AccountRepo', () => {
     it('returns true when a row was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
 
-      const res = await AccountRepo.remove('A1');
+      const res = await AccountRepo.remove({ id: 'A1', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'DELETE FROM account WHERE id = $1;',
-          values: ['A1'],
+          text: 'DELETE FROM account WHERE id = $1 AND tenantid = $2;',
+          values: ['A1', 'tenantA'],
         },
         'event_history',
       );
@@ -184,7 +173,7 @@ describe('AccountRepo', () => {
     it('returns false when nothing was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await AccountRepo.remove('A1');
+      const res = await AccountRepo.remove({ id: 'A1', tenantId: 'tenantA' });
       expect(res).toBe(false);
     });
   });

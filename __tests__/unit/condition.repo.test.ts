@@ -101,12 +101,12 @@ describe('ConditionRepo', () => {
     it('returns condition when found', async () => {
       dbCall.mockResolvedValue(ok([{ condition: { id: 'C1', x: 1 } }]));
 
-      const res = await ConditionRepo.get('C1');
+      const res = await ConditionRepo.get({ id: 'C1', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'SELECT condition FROM condition WHERE id = $1;',
-          values: ['C1'],
+          text: 'SELECT condition FROM condition WHERE id = $1 AND tenantid = $2;',
+          values: ['C1', 'tenantA'],
         },
         'event_history',
       );
@@ -116,7 +116,7 @@ describe('ConditionRepo', () => {
     it('returns null when not found', async () => {
       dbCall.mockResolvedValue(ok([]));
 
-      const res = await ConditionRepo.get('missing');
+      const res = await ConditionRepo.get({ id: 'missing', tenantId: 'tenantA' });
       expect(res).toBeNull();
     });
   });
@@ -130,7 +130,7 @@ describe('ConditionRepo', () => {
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'INSERT INTO condition (condition) VALUES ($1) RETURNING condition',
+          text: 'INSERT INTO condition (condition) VALUES ($1) RETURNING condition;',
           values: [payload],
         },
         'event_history',
@@ -143,12 +143,12 @@ describe('ConditionRepo', () => {
     it('returns updated condition when rowCount > 0', async () => {
       dbCall.mockResolvedValue({ rows: [{ condition: { id: 'UPD' } }], rowCount: 1 });
 
-      const res = await ConditionRepo.update('OLD', { id: 'UPD' } as any);
+      const res = await ConditionRepo.update({ id: 'OLD', tenantId: 'tenantA' }, { id: 'UPD' } as any);
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'UPDATE condition SET condition = $1 WHERE id = $2 RETURNING condition',
-          values: [{ id: 'UPD' }, 'OLD'],
+          text: 'UPDATE condition SET condition = $1 WHERE id = $2 AND tenantid = $3 RETURNING condition;',
+          values: [{ id: 'UPD' }, 'OLD', 'tenantA'],
         },
         'event_history',
       );
@@ -158,7 +158,7 @@ describe('ConditionRepo', () => {
     it('returns null when rowCount = 0', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await ConditionRepo.update('OLD', { id: 'UPD' } as any);
+      const res = await ConditionRepo.update({ id: 'OLD', tenantId: 'tenantA' }, { id: 'UPD' } as any);
       expect(res).toBeNull();
     });
   });
@@ -167,12 +167,12 @@ describe('ConditionRepo', () => {
     it('returns true when a row was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
 
-      const res = await ConditionRepo.remove('C1');
+      const res = await ConditionRepo.remove({ id: 'C1', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'DELETE FROM condition WHERE id = $1',
-          values: ['C1'],
+          text: 'DELETE FROM condition WHERE id = $1 AND tenantid = $2;',
+          values: ['C1', 'tenantA'],
         },
         'event_history',
       );
@@ -182,7 +182,7 @@ describe('ConditionRepo', () => {
     it('returns false when nothing was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await ConditionRepo.remove('C1');
+      const res = await ConditionRepo.remove({ id: 'C1', tenantId: 'tenantA' });
       expect(res).toBe(false);
     });
   });

@@ -83,12 +83,12 @@ describe('EvaluationRepo', () => {
     it('returns evaluation when found', async () => {
       dbCall.mockResolvedValue(ok([{ evaluation: { id: 'abc', x: 1 } }]));
 
-      const res = await EvaluationRepo.get('abc');
+      const res = await EvaluationRepo.get({ id: 'abc', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'SELECT evaluation FROM evaluation WHERE messageid = $1;',
-          values: ['abc'],
+          text: 'SELECT evaluation FROM evaluation WHERE messageid = $1 AND tenantid = $2;',
+          values: ['abc', 'tenantA'],
         },
         'evaluation',
       );
@@ -98,7 +98,7 @@ describe('EvaluationRepo', () => {
     it('returns null when not found', async () => {
       dbCall.mockResolvedValue(ok([]));
 
-      const res = await EvaluationRepo.get('nope');
+      const res = await EvaluationRepo.get({ id: 'missing', tenantId: 'tenantA' });
       expect(res).toBeNull();
     });
   });
@@ -107,7 +107,7 @@ describe('EvaluationRepo', () => {
     it('inserts and returns evaluation', async () => {
       dbCall.mockResolvedValue(ok([{ evaluation: { id: 'new' } }]));
 
-      const payload = { id: 'new', a: 1 } as any;
+      const payload = { id: 'new', a: 1, tenantId: 'DEFAULT' } as any;
       const res = await EvaluationRepo.create(payload);
 
       expect(dbCall).toHaveBeenCalledWith(
@@ -125,12 +125,12 @@ describe('EvaluationRepo', () => {
     it('returns updated evaluation when rowCount > 0', async () => {
       dbCall.mockResolvedValue({ rows: [{ evaluation: { id: 'u1' } }], rowCount: 1 });
 
-      const res = await EvaluationRepo.update('msg-1', { id: 'u1' } as any);
+      const res = await EvaluationRepo.update({ id: 'msg-1', tenantId: 'tenantA' }, { id: 'u1' } as any);
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'UPDATE evaluation SET evaluation = $1 WHERE messageid = $2 RETURNING evaluation;',
-          values: [{ id: 'u1' }, 'msg-1'],
+          text: 'UPDATE evaluation SET evaluation = $1 WHERE messageid = $2 AND tenantid = $3 RETURNING evaluation;',
+          values: [{ id: 'u1' }, 'msg-1', 'tenantA'],
         },
         'evaluation',
       );
@@ -140,7 +140,7 @@ describe('EvaluationRepo', () => {
     it('returns null when rowCount = 0', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await EvaluationRepo.update('msg-1', { id: 'u1' } as any);
+      const res = await EvaluationRepo.update({ id: 'msg-1', tenantId: 'tenantA' }, { id: 'u1' } as any);
       expect(res).toBeNull();
     });
   });
@@ -149,12 +149,12 @@ describe('EvaluationRepo', () => {
     it('returns true when a row was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
 
-      const res = await EvaluationRepo.remove('msg-1');
+      const res = await EvaluationRepo.remove({ id: 'msg-1', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'DELETE FROM evaluation WHERE messageid = $1;',
-          values: ['msg-1'],
+          text: 'DELETE FROM evaluation WHERE messageid = $1 AND tenantid = $2;',
+          values: ['msg-1', 'tenantA'],
         },
         'evaluation',
       );
@@ -164,7 +164,7 @@ describe('EvaluationRepo', () => {
     it('returns false when no rows were deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await EvaluationRepo.remove('msg-1');
+      const res = await EvaluationRepo.remove({ id: 'msg-1', tenantId: 'tenantA' });
       expect(res).toBe(false);
     });
   });

@@ -104,12 +104,12 @@ describe('TransactionRepo', () => {
       const row = { source: 'S', destination: 'D', transaction: { amt: 9 } };
       dbCall.mockResolvedValue(ok([row]));
 
-      const res = await TransactionRepo.get('MSG-1');
+      const res = await TransactionRepo.get({ id: 'MSG-1', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'SELECT * FROM transaction WHERE msgid = $1;',
-          values: ['MSG-1'],
+          text: 'SELECT * FROM transaction WHERE msgid = $1 AND tenantid = $2;',
+          values: ['MSG-1', 'tenantA'],
         },
         'event_history',
       );
@@ -119,7 +119,7 @@ describe('TransactionRepo', () => {
     it('returns null when not found', async () => {
       dbCall.mockResolvedValue(ok([]));
 
-      const res = await TransactionRepo.get('missing');
+      const res = await TransactionRepo.get({ id: 'missing', tenantId: 'tenantA' });
       expect(res).toBeNull();
     });
   });
@@ -148,12 +148,12 @@ describe('TransactionRepo', () => {
       const updated = { source: 'S2', destination: 'D2', transaction: { amt: 99 } };
       dbCall.mockResolvedValue({ rows: [updated], rowCount: 1 });
 
-      const res = await TransactionRepo.update('MSG-1', updated as any);
+      const res = await TransactionRepo.update({ id: 'MSG-1', tenantId: 'tenantA' }, updated as any);
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'UPDATE transaction SET source = $1,destination = $2,transaction = $3 WHERE msgid = $4 RETURNING source, destination, transaction;',
-          values: ['S2', 'D2', { amt: 99 }, 'MSG-1'],
+          text: 'UPDATE transaction SET source = $1,destination = $2,transaction = $3 WHERE msgid = $4 AND tenantid = $5 RETURNING source, destination, transaction;',
+          values: ['S2', 'D2', { amt: 99 }, 'MSG-1', 'tenantA'],
         },
         'event_history',
       );
@@ -163,7 +163,7 @@ describe('TransactionRepo', () => {
     it('returns null when rowCount = 0', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await TransactionRepo.update('MSG-1', {
+      const res = await TransactionRepo.update({ id: 'MSG-1', tenantId: 'tenantA' }, {
         source: 'S2',
         destination: 'D2',
         transaction: { amt: 99 },
@@ -177,12 +177,12 @@ describe('TransactionRepo', () => {
     it('returns true when a row was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
 
-      const res = await TransactionRepo.remove('MSG-1');
+      const res = await TransactionRepo.remove({ id: 'MSG-1', tenantId: 'tenantA' });
 
       expect(dbCall).toHaveBeenCalledWith(
         {
-          text: 'DELETE FROM transaction WHERE msgid = $1;',
-          values: ['MSG-1'],
+          text: 'DELETE FROM transaction WHERE msgid = $1 AND tenantid = $2;',
+          values: ['MSG-1', 'tenantA'],
         },
         'event_history',
       );
@@ -192,7 +192,7 @@ describe('TransactionRepo', () => {
     it('returns false when nothing was deleted', async () => {
       dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-      const res = await TransactionRepo.remove('MSG-1');
+      const res = await TransactionRepo.remove({ id: 'MSG-1', tenantId: 'tenantA' });
       expect(res).toBe(false);
     });
   });

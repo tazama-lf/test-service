@@ -20,9 +20,12 @@ const ok = <T extends Row>(rows: T[], rowCount?: number) => ({
   rowCount: rowCount ?? rows.length,
 });
 
-const edge = (over: Partial<{ source: string; destination: string; evtTp: string; incptnDtTm: string; xprtnDtTm: string }> = {}) => ({
+const edge = (
+  over: Partial<{ source: string; destination: string; evtTp: string; incptnDtTm: string; xprtnDtTm: string; tenantId: 'T' }> = {},
+) => ({
   source: 'S',
   destination: 'D',
+  tenantId: 'T',
   evtTp: 'EVT',
   incptnDtTm: 'I',
   xprtnDtTm: 'X',
@@ -94,12 +97,12 @@ describe('Governed repos', () => {
       it('returns edge when found', async () => {
         dbCall.mockResolvedValue(ok([{ edge: edge({ source: 'S', destination: 'D' }) }]));
 
-        const res = await GovernedAsCreditorAccountByRepo.get({ source: 'S', destination: 'D' });
+        const res = await GovernedAsCreditorAccountByRepo.get({ source: 'S', destination: 'D', tenantId: 'T' });
 
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: `SELECT * FROM ${table} WHERE source = $1 AND destination = $2;`,
-            values: ['S', 'D'],
+            text: `SELECT * FROM ${table} WHERE source = $1 AND destination = $2 AND tenantid = $3;`,
+            values: ['S', 'D', 'T'],
           },
           'event_history',
         );
@@ -109,7 +112,7 @@ describe('Governed repos', () => {
       it('returns null when not found', async () => {
         dbCall.mockResolvedValue(ok([]));
 
-        const res = await GovernedAsCreditorAccountByRepo.get({ source: 'S', destination: 'D' });
+        const res = await GovernedAsCreditorAccountByRepo.get({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(res).toBeNull();
       });
     });
@@ -118,13 +121,13 @@ describe('Governed repos', () => {
       it('inserts and returns edge', async () => {
         dbCall.mockResolvedValue(ok([{ edge: edge({ source: 'S2', destination: 'D2' }) }]));
 
-        const payload = edge({ source: 'S2', destination: 'D2' }) as any;
+        const payload = edge({ source: 'S2', destination: 'D2', tenantId: 'T' }) as any;
         const res = await GovernedAsCreditorAccountByRepo.create(payload);
 
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: `INSERT INTO ${table} (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;`,
-            values: ['S2', 'D2', 'EVT', 'I', 'X'],
+            text: `INSERT INTO ${table} (source, destination, evttp, incptndttm, xprtndttm, tenantid) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;`,
+            values: ['S2', 'D2', 'EVT', 'I', 'X', 'T'],
           },
           'event_history',
         );
@@ -137,14 +140,14 @@ describe('Governed repos', () => {
         dbCall.mockResolvedValue({ rows: [{ edge: edge({ source: 'S3', destination: 'D3' }) }], rowCount: 1 });
 
         const res = await GovernedAsCreditorAccountByRepo.update(
-          { source: 'S', destination: 'D' },
+          { source: 'S', destination: 'D', tenantId: 'T' },
           edge({ source: 'S3', destination: 'D3' }) as any,
         );
 
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: `UPDATE ${table} SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;`,
-            values: ['S3', 'D3', 'EVT', 'I', 'X', 'S', 'D'],
+            text: `UPDATE ${table} SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7 AND tenantid = $8 RETURNING *;`,
+            values: ['S3', 'D3', 'EVT', 'I', 'X', 'S', 'D', 'T'],
           },
           'event_history',
         );
@@ -155,7 +158,7 @@ describe('Governed repos', () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
         const res = await GovernedAsCreditorAccountByRepo.update(
-          { source: 'S', destination: 'D' },
+          { source: 'S', destination: 'D', tenantId: 'T' },
           edge({ source: 'S3', destination: 'D3' }) as any,
         );
         expect(res).toBeNull();
@@ -166,12 +169,12 @@ describe('Governed repos', () => {
       it('returns true when a row was deleted', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
 
-        const res = await GovernedAsCreditorAccountByRepo.remove({ source: 'S', destination: 'D' });
+        const res = await GovernedAsCreditorAccountByRepo.remove({ source: 'S', destination: 'D', tenantId: 'T' });
 
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: `DELETE FROM ${table} WHERE source = $1 AND destination = $2;`,
-            values: ['S', 'D'],
+            text: `DELETE FROM ${table} WHERE source = $1 AND destination = $2 AND tenantid = $3;`,
+            values: ['S', 'D', 'T'],
           },
           'event_history',
         );
@@ -181,7 +184,7 @@ describe('Governed repos', () => {
       it('returns false when nothing was deleted', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
 
-        const res = await GovernedAsCreditorAccountByRepo.remove({ source: 'S', destination: 'D' });
+        const res = await GovernedAsCreditorAccountByRepo.remove({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(res).toBe(false);
       });
     });
@@ -230,16 +233,16 @@ describe('Governed repos', () => {
     describe('get', () => {
       it('found', async () => {
         dbCall.mockResolvedValue(ok([{ edge: edge({ destination: 'D' }) }]));
-        const res = await GovernedAsCreditorByRepo.get({ source: 'S', destination: 'D' });
+        const res = await GovernedAsCreditorByRepo.get({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(dbCall).toHaveBeenCalledWith(
-          { text: `SELECT * FROM ${table} WHERE source = $1 AND destination = $2;`, values: ['S', 'D'] },
+          { text: `SELECT * FROM ${table} WHERE source = $1 AND destination = $2 AND tenantid = $3;`, values: ['S', 'D', 'T'] },
           'event_history',
         );
         expect(res).toEqual(edge({ destination: 'D' }));
       });
       it('not found', async () => {
         dbCall.mockResolvedValue(ok([]));
-        const res = await GovernedAsCreditorByRepo.get({ source: 'S', destination: 'D' });
+        const res = await GovernedAsCreditorByRepo.get({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(res).toBeNull();
       });
     });
@@ -250,8 +253,8 @@ describe('Governed repos', () => {
         const res = await GovernedAsCreditorByRepo.create(edge({ source: 'S2' }) as any);
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: `INSERT INTO ${table} (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;`,
-            values: ['S2', 'D', 'EVT', 'I', 'X'],
+            text: `INSERT INTO ${table} (source, destination, evttp, incptndttm, xprtndttm, tenantid) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;`,
+            values: ['S2', 'D', 'EVT', 'I', 'X', 'T'],
           },
           'event_history',
         );
@@ -262,11 +265,11 @@ describe('Governed repos', () => {
     describe('update', () => {
       it('returns updated when rowCount > 0', async () => {
         dbCall.mockResolvedValue({ rows: [{ edge: edge({ source: 'US' }) }], rowCount: 1 });
-        const res = await GovernedAsCreditorByRepo.update({ source: 'S', destination: 'D' }, edge({ source: 'US' }) as any);
+        const res = await GovernedAsCreditorByRepo.update({ source: 'S', destination: 'D', tenantId: 'T' }, edge({ source: 'US' }) as any);
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: `UPDATE ${table} SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;`,
-            values: ['US', 'D', 'EVT', 'I', 'X', 'S', 'D'],
+            text: `UPDATE ${table} SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7 AND tenantid = $8 RETURNING *;`,
+            values: ['US', 'D', 'EVT', 'I', 'X', 'S', 'D', 'T'],
           },
           'event_history',
         );
@@ -275,7 +278,7 @@ describe('Governed repos', () => {
 
       it('returns null when rowCount = 0', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
-        const res = await GovernedAsCreditorByRepo.update({ source: 'S', destination: 'D' }, edge({ source: 'US' }) as any);
+        const res = await GovernedAsCreditorByRepo.update({ source: 'S', destination: 'D', tenantId: 'T' }, edge({ source: 'US' }) as any);
         expect(res).toBeNull();
       });
     });
@@ -283,16 +286,16 @@ describe('Governed repos', () => {
     describe('remove', () => {
       it('true when deleted', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
-        const res = await GovernedAsCreditorByRepo.remove({ source: 'S', destination: 'D' });
+        const res = await GovernedAsCreditorByRepo.remove({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(dbCall).toHaveBeenCalledWith(
-          { text: `DELETE FROM ${table} WHERE source = $1 AND destination = $2;`, values: ['S', 'D'] },
+          { text: `DELETE FROM ${table} WHERE source = $1 AND destination = $2 AND tenantid = $3;`, values: ['S', 'D', 'T'] },
           'event_history',
         );
         expect(res).toBe(true);
       });
       it('false when not deleted', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
-        const res = await GovernedAsCreditorByRepo.remove({ source: 'S', destination: 'D' });
+        const res = await GovernedAsCreditorByRepo.remove({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(res).toBe(false);
       });
     });
@@ -334,16 +337,16 @@ describe('Governed repos', () => {
     describe('get', () => {
       it('found', async () => {
         dbCall.mockResolvedValue(ok([{ edge: edge({ source: 'S', destination: 'D' }) }]));
-        const res = await GovernedAsDebtorAccountByRepo.get({ source: 'S', destination: 'D' });
+        const res = await GovernedAsDebtorAccountByRepo.get({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(dbCall).toHaveBeenCalledWith(
-          { text: `SELECT * FROM ${table} WHERE source = $1 AND destination = $2;`, values: ['S', 'D'] },
+          { text: `SELECT * FROM ${table} WHERE source = $1 AND destination = $2 AND tenantid = $3;`, values: ['S', 'D', 'T'] },
           'event_history',
         );
         expect(res).toEqual(edge({ source: 'S', destination: 'D' }));
       });
       it('not found', async () => {
         dbCall.mockResolvedValue(ok([]));
-        const res = await GovernedAsDebtorAccountByRepo.get({ source: 'S', destination: 'D' });
+        const res = await GovernedAsDebtorAccountByRepo.get({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(res).toBeNull();
       });
     });
@@ -354,8 +357,8 @@ describe('Governed repos', () => {
         const res = await GovernedAsDebtorAccountByRepo.create(edge({ source: 'S3' }) as any);
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: `INSERT INTO ${table} (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;`,
-            values: ['S3', 'D', 'EVT', 'I', 'X'],
+            text: `INSERT INTO ${table} (source, destination, evttp, incptndttm, xprtndttm, tenantid) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;`,
+            values: ['S3', 'D', 'EVT', 'I', 'X', 'T'],
           },
           'event_history',
         );
@@ -366,11 +369,14 @@ describe('Governed repos', () => {
     describe('update', () => {
       it('returns updated when rowCount > 0', async () => {
         dbCall.mockResolvedValue({ rows: [{ edge: edge({ destination: 'UD' }) }], rowCount: 1 });
-        const res = await GovernedAsDebtorAccountByRepo.update({ source: 'S', destination: 'D' }, edge({ destination: 'UD' }) as any);
+        const res = await GovernedAsDebtorAccountByRepo.update(
+          { source: 'S', destination: 'D', tenantId: 'T' },
+          edge({ destination: 'UD' }) as any,
+        );
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: `UPDATE ${table} SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;`,
-            values: ['S', 'UD', 'EVT', 'I', 'X', 'S', 'D'],
+            text: `UPDATE ${table} SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7 AND tenantid = $8 RETURNING *;`,
+            values: ['S', 'UD', 'EVT', 'I', 'X', 'S', 'D', 'T'],
           },
           'event_history',
         );
@@ -379,7 +385,10 @@ describe('Governed repos', () => {
 
       it('returns null when rowCount = 0', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
-        const res = await GovernedAsDebtorAccountByRepo.update({ source: 'S', destination: 'D' }, edge({ destination: 'UD' }) as any);
+        const res = await GovernedAsDebtorAccountByRepo.update(
+          { source: 'S', destination: 'D', tenantId: 'T' },
+          edge({ destination: 'UD' }) as any,
+        );
         expect(res).toBeNull();
       });
     });
@@ -387,16 +396,16 @@ describe('Governed repos', () => {
     describe('remove', () => {
       it('true when deleted', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
-        const res = await GovernedAsDebtorAccountByRepo.remove({ source: 'S', destination: 'D' });
+        const res = await GovernedAsDebtorAccountByRepo.remove({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(dbCall).toHaveBeenCalledWith(
-          { text: `DELETE FROM ${table} WHERE source = $1 AND destination = $2;`, values: ['S', 'D'] },
+          { text: `DELETE FROM ${table} WHERE source = $1 AND destination = $2 AND tenantid = $3;`, values: ['S', 'D', 'T'] },
           'event_history',
         );
         expect(res).toBe(true);
       });
       it('false when not deleted', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
-        const res = await GovernedAsDebtorAccountByRepo.remove({ source: 'S', destination: 'D' });
+        const res = await GovernedAsDebtorAccountByRepo.remove({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(res).toBe(false);
       });
     });
@@ -438,16 +447,16 @@ describe('Governed repos', () => {
     describe('get', () => {
       it('found', async () => {
         dbCall.mockResolvedValue(ok([{ edge: edge({ destination: 'D9' }) }]));
-        const res = await GovernedAsDebtorByRepo.get({ source: 'S', destination: 'D9' });
+        const res = await GovernedAsDebtorByRepo.get({ source: 'S', destination: 'D9', tenantId: 'T' });
         expect(dbCall).toHaveBeenCalledWith(
-          { text: `SELECT * FROM ${table} WHERE source = $1 AND destination = $2;`, values: ['S', 'D9'] },
+          { text: `SELECT * FROM ${table} WHERE source = $1 AND destination = $2 AND tenantid = $3;`, values: ['S', 'D9', 'T'] },
           'event_history',
         );
         expect(res).toEqual(edge({ destination: 'D9' }));
       });
       it('not found', async () => {
         dbCall.mockResolvedValue(ok([]));
-        const res = await GovernedAsDebtorByRepo.get({ source: 'S', destination: 'D' });
+        const res = await GovernedAsDebtorByRepo.get({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(res).toBeNull();
       });
     });
@@ -458,8 +467,8 @@ describe('Governed repos', () => {
         const res = await GovernedAsDebtorByRepo.create(edge({ source: 'SC' }) as any);
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: `INSERT INTO ${table} (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;`,
-            values: ['SC', 'D', 'EVT', 'I', 'X'],
+            text: `INSERT INTO ${table} (source, destination, evttp, incptndttm, xprtndttm, tenantid) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;`,
+            values: ['SC', 'D', 'EVT', 'I', 'X', 'T'],
           },
           'event_history',
         );
@@ -470,11 +479,11 @@ describe('Governed repos', () => {
     describe('update', () => {
       it('returns updated when rowCount > 0', async () => {
         dbCall.mockResolvedValue({ rows: [{ edge: edge({ source: 'SU' }) }], rowCount: 1 });
-        const res = await GovernedAsDebtorByRepo.update({ source: 'S', destination: 'D' }, edge({ source: 'SU' }) as any);
+        const res = await GovernedAsDebtorByRepo.update({ source: 'S', destination: 'D', tenantId: 'T' }, edge({ source: 'SU' }) as any);
         expect(dbCall).toHaveBeenCalledWith(
           {
-            text: `UPDATE ${table} SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;`,
-            values: ['SU', 'D', 'EVT', 'I', 'X', 'S', 'D'],
+            text: `UPDATE ${table} SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7 AND tenantid = $8 RETURNING *;`,
+            values: ['SU', 'D', 'EVT', 'I', 'X', 'S', 'D', 'T'],
           },
           'event_history',
         );
@@ -483,7 +492,7 @@ describe('Governed repos', () => {
 
       it('returns null when rowCount = 0', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
-        const res = await GovernedAsDebtorByRepo.update({ source: 'S', destination: 'D' }, edge({ source: 'SU' }) as any);
+        const res = await GovernedAsDebtorByRepo.update({ source: 'S', destination: 'D', tenantId: 'T' }, edge({ source: 'SU' }) as any);
         expect(res).toBeNull();
       });
     });
@@ -491,9 +500,9 @@ describe('Governed repos', () => {
     describe('remove', () => {
       it('true when deleted (rowCount > 0)', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 1 });
-        const res = await GovernedAsDebtorByRepo.remove({ source: 'S', destination: 'D' });
+        const res = await GovernedAsDebtorByRepo.remove({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(dbCall).toHaveBeenCalledWith(
-          { text: `DELETE FROM ${table} WHERE source = $1 AND destination = $2;`, values: ['S', 'D'] },
+          { text: `DELETE FROM ${table} WHERE source = $1 AND destination = $2 AND tenantid = $3;`, values: ['S', 'D', 'T'] },
           'event_history',
         );
         // implementation returns rowCount ? rowCount > 0 : false; -> true
@@ -501,7 +510,7 @@ describe('Governed repos', () => {
       });
       it('false when not deleted', async () => {
         dbCall.mockResolvedValue({ rows: [], rowCount: 0 });
-        const res = await GovernedAsDebtorByRepo.remove({ source: 'S', destination: 'D' });
+        const res = await GovernedAsDebtorByRepo.remove({ source: 'S', destination: 'D', tenantId: 'T' });
         expect(res).toBe(false);
       });
     });
