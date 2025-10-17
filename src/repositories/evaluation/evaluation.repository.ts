@@ -20,11 +20,11 @@ export const EvaluationRepo: CrudRepository<Alert> = {
       : { data: [], total: 0 };
   },
 
-  get: async function (id: string): Promise<Alert | null> {
+  get: async function ({ id, tenantId }): Promise<Alert | null> {
     const queryRes = await handleExecuteSqlStatement<{ evaluation: Alert }>(
       {
-        text: 'SELECT evaluation FROM evaluation WHERE messageid = $1;',
-        values: [id],
+        text: 'SELECT evaluation FROM evaluation WHERE messageid = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'evaluation',
     );
@@ -43,22 +43,22 @@ export const EvaluationRepo: CrudRepository<Alert> = {
     return queryRes.rows[0].evaluation;
   },
 
-  update: async function (name: string, payload: Alert): Promise<Alert | null> {
+  update: async function ({ id, tenantId }, payload: Alert): Promise<Alert | null> {
     const queryRes = await handleExecuteSqlStatement<{ evaluation: Alert }>(
       {
-        text: 'UPDATE evaluation SET evaluation = $1 WHERE messageid = $2 RETURNING evaluation;',
-        values: [payload, name],
+        text: 'UPDATE evaluation SET evaluation = $1 WHERE messageid = $2 AND tenantid = $3 RETURNING evaluation;',
+        values: [payload, id, tenantId],
       } satisfies PgQueryConfig,
       'evaluation',
     );
     return queryRes.rowCount ? queryRes.rows[0].evaluation : null;
   },
 
-  remove: async function (name: string): Promise<boolean> {
+  remove: async function ({ id, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<{ evaluation: Alert }>(
       {
-        text: 'DELETE FROM evaluation WHERE messageid = $1;',
-        values: [name],
+        text: 'DELETE FROM evaluation WHERE messageid = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'evaluation',
     );

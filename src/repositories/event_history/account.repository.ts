@@ -20,11 +20,11 @@ export const AccountRepo: CrudRepository<Account> = {
       : { data: [], total: 0 };
   },
 
-  get: async function (id: string | undefined): Promise<Account | null> {
+  get: async function ({ id, tenantId }): Promise<Account | null> {
     const queryRes = await handleExecuteSqlStatement<{ id: Account }>(
       {
-        text: 'SELECT id FROM account WHERE id = $1;',
-        values: [id],
+        text: 'SELECT id FROM account WHERE id = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -34,30 +34,30 @@ export const AccountRepo: CrudRepository<Account> = {
   create: async function (payload: Account): Promise<Account> {
     const queryRes = await handleExecuteSqlStatement<{ id: Account }>(
       {
-        text: 'INSERT INTO account (id) VALUES ($1) RETURNING id;',
-        values: [payload],
+        text: 'INSERT INTO account (id, tenantid) VALUES ($1, $2) RETURNING *;',
+        values: [payload.id, payload.TenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rows[0].id;
   },
 
-  update: async function (id: string, payload: Account): Promise<Account | null> {
+  update: async function ({ id, tenantId }, payload: Account): Promise<Account | null> {
     const queryRes = await handleExecuteSqlStatement<{ id: Account }>(
       {
-        text: 'UPDATE account SET id = $1 WHERE id = $2 RETURNING id;',
-        values: [payload, id],
+        text: 'UPDATE account SET id = $1, tenantid = $2 WHERE id = $3 AND tenantid = $4 RETURNING id;',
+        values: [payload.id, payload.TenantId, id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rowCount ? queryRes.rows[0].id : null;
   },
 
-  remove: async function (id: string): Promise<boolean> {
+  remove: async function ({ id, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<{ id: Account }>(
       {
-        text: 'DELETE FROM account WHERE id = $1;',
-        values: [id],
+        text: 'DELETE FROM account WHERE id = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );

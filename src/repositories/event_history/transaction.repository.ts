@@ -24,11 +24,11 @@ export const TransactionRepo: CrudRepository<Transaction> = {
     return queryRes.rows.length > 0 ? { data: queryRes.rows.map((values) => values), total: queryRes.rowCount! } : { data: [], total: 0 };
   },
 
-  get: async function (id: string): Promise<Transaction | null> {
+  get: async function ({ id, tenantId }): Promise<Transaction | null> {
     const queryRes = await handleExecuteSqlStatement<Transaction>(
       {
-        text: 'SELECT * FROM transaction WHERE msgid = $1;',
-        values: [id],
+        text: 'SELECT * FROM transaction WHERE msgid = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -47,22 +47,22 @@ export const TransactionRepo: CrudRepository<Transaction> = {
     return { source: queryRes.rows[0].source, destination: queryRes.rows[0].destination, transaction: queryRes.rows[0].transaction };
   },
 
-  update: async function (id: string, payload: Transaction): Promise<Transaction | null> {
+  update: async function ({ id, tenantId }, payload: Transaction): Promise<Transaction | null> {
     const queryRes = await handleExecuteSqlStatement<Transaction>(
       {
-        text: 'UPDATE transaction SET source = $1,destination = $2,transaction = $3 WHERE msgid = $4 RETURNING source, destination, transaction;',
-        values: [payload.source, payload.destination, payload.transaction, id],
+        text: 'UPDATE transaction SET source = $1,destination = $2,transaction = $3 WHERE msgid = $4 AND tenantid = $5 RETURNING source, destination, transaction;',
+        values: [payload.source, payload.destination, payload.transaction, id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rowCount ? queryRes.rows[0] : null;
   },
 
-  remove: async function (id: string): Promise<boolean> {
+  remove: async function ({ id, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<{ transaction: Transaction }>(
       {
-        text: 'DELETE FROM transaction WHERE msgid = $1;',
-        values: [id],
+        text: 'DELETE FROM transaction WHERE msgid = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );

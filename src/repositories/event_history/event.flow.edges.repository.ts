@@ -20,11 +20,11 @@ export const GovernedAsCreditorAccountByRepo: CrudRepository<Edge, Connector> = 
       : { data: [], total: 0 };
   },
 
-  get: async function ({ source, destination }): Promise<Edge | null> {
+  get: async function ({ source, destination, tenantId }): Promise<Edge | null> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'SELECT * FROM governed_as_creditor_account_by WHERE source = $1 AND destination = $2;',
-        values: [source, destination],
+        text: 'SELECT * FROM governed_as_creditor_account_by WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -35,30 +35,30 @@ export const GovernedAsCreditorAccountByRepo: CrudRepository<Edge, Connector> = 
   create: async function (payload: Edge): Promise<Edge> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'INSERT INTO governed_as_creditor_account_by (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;',
-        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm],
+        text: 'INSERT INTO governed_as_creditor_account_by (source, destination, evttp, incptndttm, xprtndttm, tenantid) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;',
+        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, payload.tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rows[0].edge;
   },
 
-  update: async function ({ source, destination }, payload: Edge): Promise<Edge | null> {
+  update: async function ({ source, destination, tenantId }, payload: Edge): Promise<Edge | null> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'UPDATE governed_as_creditor_account_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;',
-        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination],
+        text: 'UPDATE governed_as_creditor_account_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7 AND tenantid = $8 RETURNING *;',
+        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rowCount ? queryRes.rows[0].edge : null;
   },
 
-  remove: async function ({ source, destination }): Promise<boolean> {
+  remove: async function ({ source, destination, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'DELETE FROM governed_as_creditor_account_by WHERE source = $1 AND destination = $2;',
-        values: [source, destination],
+        text: 'DELETE FROM governed_as_creditor_account_by WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -82,11 +82,11 @@ export const GovernedAsCreditorByRepo: CrudRepository<Edge, Connector> = {
       : { data: [], total: 0 };
   },
 
-  get: async function ({ source, destination }): Promise<Edge | null> {
+  get: async function ({ source, destination, tenantId }): Promise<Edge | null> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'SELECT * FROM governed_as_creditor_by WHERE source = $1 AND destination = $2;',
-        values: [source, destination],
+        text: 'SELECT * FROM governed_as_creditor_by WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -97,30 +97,30 @@ export const GovernedAsCreditorByRepo: CrudRepository<Edge, Connector> = {
   create: async function (payload: Edge): Promise<Edge> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'INSERT INTO governed_as_creditor_by (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;',
-        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm],
+        text: 'INSERT INTO governed_as_creditor_by (source, destination, evttp, incptndttm, xprtndttm, tenantid) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;',
+        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, payload.tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rows[0].edge;
   },
 
-  update: async function ({ source, destination }, payload: Edge): Promise<Edge | null> {
+  update: async function ({ source, destination, tenantId }, payload: Edge): Promise<Edge | null> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'UPDATE governed_as_creditor_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;',
-        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination],
+        text: 'UPDATE governed_as_creditor_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7 AND tenantid = $8 RETURNING *;',
+        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rowCount ? queryRes.rows[0].edge : null;
   },
 
-  remove: async function ({ source, destination }): Promise<boolean> {
+  remove: async function ({ source, destination, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'DELETE FROM governed_as_creditor_by WHERE source = $1 AND destination = $2;',
-        values: [source, destination],
+        text: 'DELETE FROM governed_as_creditor_by WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -144,11 +144,11 @@ export const GovernedAsDebtorAccountByRepo: CrudRepository<Edge, Connector> = {
       : { data: [], total: 0 };
   },
 
-  get: async function ({ source, destination }): Promise<Edge | null> {
+  get: async function ({ source, destination, tenantId }): Promise<Edge | null> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'SELECT * FROM governed_as_debtor_account_by WHERE source = $1 AND destination = $2;',
-        values: [source, destination],
+        text: 'SELECT * FROM governed_as_debtor_account_by WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -159,30 +159,30 @@ export const GovernedAsDebtorAccountByRepo: CrudRepository<Edge, Connector> = {
   create: async function (payload: Edge): Promise<Edge> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'INSERT INTO governed_as_debtor_account_by (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;',
-        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm],
+        text: 'INSERT INTO governed_as_debtor_account_by (source, destination, evttp, incptndttm, xprtndttm, tenantid) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;',
+        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, payload.tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rows[0].edge;
   },
 
-  update: async function ({ source, destination }, payload: Edge): Promise<Edge | null> {
+  update: async function ({ source, destination, tenantId }, payload: Edge): Promise<Edge | null> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'UPDATE governed_as_debtor_account_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;',
-        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination],
+        text: 'UPDATE governed_as_debtor_account_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7 AND tenantid = $8 RETURNING *;',
+        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rowCount ? queryRes.rows[0].edge : null;
   },
 
-  remove: async function ({ source, destination }): Promise<boolean> {
+  remove: async function ({ source, destination, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'DELETE FROM governed_as_debtor_account_by WHERE source = $1 AND destination = $2;',
-        values: [source, destination],
+        text: 'DELETE FROM governed_as_debtor_account_by WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -206,11 +206,11 @@ export const GovernedAsDebtorByRepo: CrudRepository<Edge, Connector> = {
       : { data: [], total: 0 };
   },
 
-  get: async function ({ source, destination }): Promise<Edge | null> {
+  get: async function ({ source, destination, tenantId }): Promise<Edge | null> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'SELECT * FROM governed_as_debtor_by WHERE source = $1 AND destination = $2;',
-        values: [source, destination],
+        text: 'SELECT * FROM governed_as_debtor_by WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -221,30 +221,30 @@ export const GovernedAsDebtorByRepo: CrudRepository<Edge, Connector> = {
   create: async function (payload: Edge): Promise<Edge> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'INSERT INTO governed_as_debtor_by (source, destination, evttp, incptndttm, xprtndttm) VALUES ($1,$2,$3,$4,$5) RETURNING evaluation;',
-        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm],
+        text: 'INSERT INTO governed_as_debtor_by (source, destination, evttp, incptndttm, xprtndttm, tenantid) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *;',
+        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, payload.tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rows[0].edge;
   },
 
-  update: async function ({ source, destination }, payload: Edge): Promise<Edge | null> {
+  update: async function ({ source, destination, tenantId }, payload: Edge): Promise<Edge | null> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'UPDATE governed_as_debtor_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7;',
-        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination],
+        text: 'UPDATE governed_as_debtor_by SET source = $1, destination = $2, evttp = $3, incptndttm = $4, xprtndttm = $5 WHERE source = $6 AND destination = $7 AND tenantid = $8 RETURNING *;',
+        values: [payload.source, payload.destination, payload.evtTp, payload.incptnDtTm, payload.xprtnDtTm, source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rowCount ? queryRes.rows[0].edge : null;
   },
 
-  remove: async function ({ source, destination }): Promise<boolean> {
+  remove: async function ({ source, destination, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<{ edge: Edge }>(
       {
-        text: 'DELETE FROM governed_as_debtor_by WHERE source = $1 AND destination = $2;',
-        values: [source, destination],
+        text: 'DELETE FROM governed_as_debtor_by WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );

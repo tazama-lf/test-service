@@ -20,11 +20,11 @@ export const Pacs002Repo: CrudRepository<Pacs002> = {
       : { data: [], total: 0 };
   },
 
-  get: async function (id: string): Promise<Pacs002 | null> {
+  get: async function ({ id, tenantId }): Promise<Pacs002 | null> {
     const queryRes = await handleExecuteSqlStatement<{ document: Pacs002 }>(
       {
-        text: 'SELECT document FROM pacs002 WHERE messageid = $1;',
-        values: [id],
+        text: 'SELECT document FROM pacs002 WHERE messageid = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'raw_history',
     );
@@ -43,22 +43,22 @@ export const Pacs002Repo: CrudRepository<Pacs002> = {
     return queryRes.rows[0].document;
   },
 
-  update: async function (name: string, payload: Pacs002): Promise<Pacs002 | null> {
+  update: async function ({ id, tenantId }, payload: Pacs002): Promise<Pacs002 | null> {
     const queryRes = await handleExecuteSqlStatement<{ document: Pacs002 }>(
       {
-        text: 'UPDATE pacs002 SET document = $1 WHERE messageid = $2 RETURNING document;',
-        values: [payload, name],
+        text: 'UPDATE pacs002 SET document = $1 WHERE messageid = $2 AND tenantid = $3 RETURNING document;',
+        values: [payload, id, tenantId],
       } satisfies PgQueryConfig,
       'raw_history',
     );
     return queryRes.rowCount ? queryRes.rows[0].document : null;
   },
 
-  remove: async function (name: string): Promise<boolean> {
+  remove: async function ({ id, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<{ document: Pacs002 }>(
       {
-        text: 'DELETE FROM pacs002 WHERE messageid = $1;',
-        values: [name],
+        text: 'DELETE FROM pacs002 WHERE messageid = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'raw_history',
     );

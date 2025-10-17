@@ -9,7 +9,7 @@ export const ConditionRepo: CrudRepository<Condition> = {
     sort ??= 'creDtTm';
     const queryRes = await handleExecuteSqlStatement<{ condition: Condition }>(
       {
-        text: `SELECT condition FROM condition WHERE tenantId = $4 ORDER BY condition->>$3 ${order} OFFSET $1 LIMIT $2`,
+        text: `SELECT condition FROM condition WHERE tenantId = $4 ORDER BY condition->>$3 ${order} OFFSET $1 LIMIT $2;`,
         values: [offset, limit, sort, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
@@ -20,11 +20,11 @@ export const ConditionRepo: CrudRepository<Condition> = {
       : { data: [], total: 0 };
   },
 
-  get: async function (id: string): Promise<Condition | null> {
+  get: async function ({ id, tenantId }): Promise<Condition | null> {
     const queryRes = await handleExecuteSqlStatement<{ condition: Condition }>(
       {
-        text: 'SELECT condition FROM condition WHERE id = $1;',
-        values: [id],
+        text: 'SELECT condition FROM condition WHERE id = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -35,7 +35,7 @@ export const ConditionRepo: CrudRepository<Condition> = {
   create: async function (payload: Condition): Promise<Condition> {
     const queryRes = await handleExecuteSqlStatement<{ condition: Condition }>(
       {
-        text: 'INSERT INTO condition (condition) VALUES ($1) RETURNING condition',
+        text: 'INSERT INTO condition (condition) VALUES ($1) RETURNING condition;',
         values: [payload],
       } satisfies PgQueryConfig,
       'event_history',
@@ -43,22 +43,22 @@ export const ConditionRepo: CrudRepository<Condition> = {
     return queryRes.rows[0].condition;
   },
 
-  update: async function (id: string, payload: Condition): Promise<Condition | null> {
+  update: async function ({ id, tenantId }, payload: Condition): Promise<Condition | null> {
     const queryRes = await handleExecuteSqlStatement<{ condition: Condition }>(
       {
-        text: 'UPDATE condition SET condition = $1 WHERE id = $2 RETURNING condition',
-        values: [payload, id],
+        text: 'UPDATE condition SET condition = $1 WHERE id = $2 AND tenantid = $3 RETURNING condition;',
+        values: [payload, id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rowCount ? queryRes.rows[0].condition : null;
   },
 
-  remove: async function (id: string): Promise<boolean> {
+  remove: async function ({ id, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<{ condition: Condition }>(
       {
-        text: 'DELETE FROM condition WHERE id = $1',
-        values: [id],
+        text: 'DELETE FROM condition WHERE id = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );

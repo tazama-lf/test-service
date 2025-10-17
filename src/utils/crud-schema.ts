@@ -6,6 +6,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { configuration } from '..';
 import { tokenHandler } from '../auth/authHandler';
 import type { AllowedId, CrudRepository, ListQuery } from '../repositories/repository.base';
+import { validateTenantMiddleware } from '../middleware/tenantMiddleware';
 
 export interface CrudSchemas {
   Entity: TSchema;
@@ -28,6 +29,7 @@ const DefaultQuery = Type.Object({
   limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100 })),
   offset: Type.Optional(Type.Integer({ minimum: 0 })),
   sort: Type.Optional(Type.String()),
+  tenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
   order: Type.Optional(Type.Union([Type.Literal('ASC'), Type.Literal('DESC')])),
   q: Type.Optional(Type.String()),
   filters: Type.Optional(Type.Record(Type.String(), Type.String())),
@@ -36,7 +38,9 @@ const DefaultQuery = Type.Object({
 const makeIdSchema = (
   cfg?: { kind: 'single'; name?: string } | { kind: 'composite'; names: readonly [string, string] },
 ): TObject<Record<string, TSchema>> => {
-  const props: Record<string, TSchema> = {};
+  const props: Record<string, TSchema> = {
+    tenantId: Type.String(),
+  };
   if (cfg?.kind === 'composite') {
     const [a, b] = cfg.names;
     props[a] = Type.String();
@@ -48,14 +52,16 @@ const makeIdSchema = (
   return Type.Object(props);
 };
 
-export const buildCrudPlugin = <TEntity, TId extends AllowedId = string>(opts: BuildCrudOptions<TEntity, TId>): FastifyPluginAsync => {
+export const buildCrudPlugin = <TEntity, TId extends AllowedId = { id: string; tenantId: string }>(
+  opts: BuildCrudOptions<TEntity, TId>,
+): FastifyPluginAsync => {
   const plugin: FastifyPluginAsync = async (app: FastifyInstance<RawServerDefault, IncomingMessage, ServerResponse>) => {
     const { prefix, repo, schemas, idParam } = opts;
     const { Entity, Create, Update } = schemas;
 
     // --- Build path and param schema based on idParam ---
     const singleName: string = idParam?.kind === 'single' ? (idParam.name ?? 'id') : 'id';
-    const idPath = idParam?.kind === 'composite' ? `/:${idParam.names[0]}/:${idParam.names[1]}` : `/:${singleName}`;
+    const idPath = idParam?.kind === 'composite' ? `/:${idParam.names[0]}/:${idParam.names[1]}/:tenantId` : `/:${singleName}/:tenantId`;
 
     const IdParam = schemas.Id ?? makeIdSchema(idParam);
 
@@ -69,7 +75,7 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = string>(opts: B
         offset: Type.Integer(),
       }),
     });
-    // --- LIST --- AUTH:EXAMPLE(LIST_V1_ADMIN_RAW_HISTORY_PACS002)
+    // --- LIST --- AUTH:EXAMPLE(LIST_V1_TEST_RAW_HISTORY_PACS002)
     app.get(
       prefix,
       {
@@ -78,16 +84,19 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = string>(opts: B
           querystring: QuerySchema,
           response: { 200: ListResponse },
         },
-        preHandler: configuration.AUTHENTICATED ? tokenHandler(`LIST${prefix.replaceAll('/', '_').toUpperCase()}`) : undefined,
+        preHandler: configuration.AUTHENTICATED
+          ? [validateTenantMiddleware, tokenHandler(`LIST${prefix.replaceAll('/', '_').toUpperCase()}`)]
+          : undefined,
       },
       async (req, reply) => {
         const q = req.query as Static<typeof QuerySchema>;
-        const { limit = 20, offset = 0, sort, order = 'ASC', q: search, filters } = q;
+        const { limit = 20, offset = 0, tenantId = 'DEFAULT', sort, order = 'ASC', q: search, filters } = q;
 
         type SortField = Extract<keyof TEntity, string>;
 
         const params: ListQuery<SortField> = {
           limit,
+          tenantId,
           offset,
           sort: sort as SortField | undefined,
           order,
@@ -100,7 +109,7 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = string>(opts: B
       },
     );
 
-    // --- GET --- AUTH:EXAMPLE(GET_V1_ADMIN_RAW_HISTORY_PACS002)
+    // --- GET --- AUTH:EXAMPLE(GET_V1_TEST_RAW_HISTORY_PACS002)
     app.get(
       `${prefix}${idPath}`,
       {
@@ -109,23 +118,25 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = string>(opts: B
           params: IdParam,
           response: { 200: Entity, 404: Type.Object({ message: Type.String() }) },
         },
-        preHandler: configuration.AUTHENTICATED ? tokenHandler(`GET${prefix.replaceAll('/', '_').toUpperCase()}`) : undefined,
+        preHandler: configuration.AUTHENTICATED
+          ? [validateTenantMiddleware, tokenHandler(`GET${prefix.replaceAll('/', '_').toUpperCase()}`)]
+          : undefined,
       },
       async (req, reply) => {
         const p = req.params as Record<string, string>;
 
         const id =
           idParam?.kind === 'composite'
-            ? ({ [idParam.names[0]]: p[idParam.names[0]], [idParam.names[1]]: p[idParam.names[1]] } as unknown as TId)
-            : (p[singleName] as unknown as TId);
+            ? { [idParam.names[0]]: p[idParam.names[0]], [idParam.names[1]]: p[idParam.names[1]], tenantId: p.tenantId }
+            : { id: p[singleName], tenantId: p.tenantId };
 
-        const entity = await repo.get(id);
+        const entity = await repo.get(id as TId);
         if (!entity) return await reply.code(404).send({ message: 'Not found' });
         return entity;
       },
     );
 
-    // --- CREATE --- AUTH:EXAMPLE(POST_V1_ADMIN_RAW_HISTORY_PACS002)
+    // --- CREATE --- AUTH:EXAMPLE(POST_V1_TEST_RAW_HISTORY_PACS002)
     app.post(
       prefix,
       {
@@ -134,7 +145,9 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = string>(opts: B
           body: Create,
           response: { 201: Entity },
         },
-        preHandler: configuration.AUTHENTICATED ? tokenHandler(`POST${prefix.replaceAll('/', '_').toUpperCase()}`) : undefined,
+        preHandler: configuration.AUTHENTICATED
+          ? [validateTenantMiddleware, tokenHandler(`POST${prefix.replaceAll('/', '_').toUpperCase()}`)]
+          : undefined,
       },
       async (req, reply) => {
         const created = await repo.create(req.body as TEntity);
@@ -142,7 +155,7 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = string>(opts: B
       },
     );
 
-    // --- PUT --- AUTH:EXAMPLE(PUT_V1_ADMIN_RAW_HISTORY_PACS002)
+    // --- PUT --- AUTH:EXAMPLE(PUT_V1_TEST_RAW_HISTORY_PACS002)
     app.put(
       `${prefix}${idPath}`,
       {
@@ -152,22 +165,24 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = string>(opts: B
           body: Update,
           response: { 200: Entity, 404: Type.Object({ message: Type.String() }) },
         },
-        preHandler: configuration.AUTHENTICATED ? tokenHandler(`PUT${prefix.replaceAll('/', '_').toUpperCase()}`) : undefined,
+        preHandler: configuration.AUTHENTICATED
+          ? [validateTenantMiddleware, tokenHandler(`PUT${prefix.replaceAll('/', '_').toUpperCase()}`)]
+          : undefined,
       },
       async (req, reply) => {
         const p = req.params as Record<string, string>;
         const id =
           idParam?.kind === 'composite'
-            ? ({ [idParam.names[0]]: p[idParam.names[0]], [idParam.names[1]]: p[idParam.names[1]] } as unknown as TId)
-            : (p[singleName] as unknown as TId);
+            ? { [idParam.names[0]]: p[idParam.names[0]], [idParam.names[1]]: p[idParam.names[1]], tenantId: p.tenantId }
+            : { id: p[singleName], tenantId: p.tenantId };
 
-        const updated = await repo.update(id, req.body as TEntity);
+        const updated = await repo.update(id as TId, req.body as TEntity);
         if (!updated) return await reply.code(404).send({ message: 'Not found' });
         return updated;
       },
     );
 
-    // --- DELETE --- AUTH:EXAMPLE(DELETE_V1_ADMIN_RAW_HISTORY_PACS002)
+    // --- DELETE --- AUTH:EXAMPLE(DELETE_V1_TEST_RAW_HISTORY_PACS002)
     app.delete(
       `${prefix}${idPath}`,
       {
@@ -176,16 +191,18 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = string>(opts: B
           params: IdParam,
           response: { 200: Type.Object({ success: Type.Boolean() }) },
         },
-        preHandler: configuration.AUTHENTICATED ? tokenHandler(`DELETE${prefix.replaceAll('/', '_').toUpperCase()}`) : undefined,
+        preHandler: configuration.AUTHENTICATED
+          ? [validateTenantMiddleware, tokenHandler(`DELETE${prefix.replaceAll('/', '_').toUpperCase()}`)]
+          : undefined,
       },
       async (req, reply) => {
         const p = req.params as Record<string, string>;
         const id =
           idParam?.kind === 'composite'
-            ? ({ [idParam.names[0]]: p[idParam.names[0]], [idParam.names[1]]: p[idParam.names[1]] } as unknown as TId)
-            : (p[singleName] as unknown as TId);
+            ? { [idParam.names[0]]: p[idParam.names[0]], [idParam.names[1]]: p[idParam.names[1]], tenantId: p.tenantId }
+            : { id: p[singleName], tenantId: p.tenantId };
 
-        const ok = await repo.remove(id);
+        const ok = await repo.remove(id as TId);
         return { success: ok };
       },
     );

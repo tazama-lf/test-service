@@ -20,11 +20,11 @@ export const AccountHolderRepo: CrudRepository<AccountHolder, Connector> = {
       : { data: [], total: 0 };
   },
 
-  get: async function ({ source, destination }): Promise<AccountHolder | null> {
+  get: async function ({ source, destination, tenantId }): Promise<AccountHolder | null> {
     const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
       {
-        text: 'SELECT * FROM account_holder WHERE source = $1 AND destination = $2;',
-        values: [source, destination],
+        text: 'SELECT * FROM account_holder WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -35,30 +35,30 @@ export const AccountHolderRepo: CrudRepository<AccountHolder, Connector> = {
   create: async function (payload: AccountHolder): Promise<AccountHolder> {
     const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
       {
-        text: 'INSERT INTO account_holder (source, destination, credttm) VALUES ($1, $2, $3) RETURNING source, destination, credttm;',
-        values: [payload.source, payload.destination, payload.credttm],
+        text: 'INSERT INTO account_holder (source, destination, credttm, tenantid) VALUES ($1, $2, $3, $4) RETURNING *;',
+        values: [payload.source, payload.destination, payload.credttm, payload.tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rows[0].evaluation;
   },
 
-  update: async function ({ source, destination }, payload: AccountHolder): Promise<AccountHolder | null> {
+  update: async function ({ source, destination, tenantId }, payload: AccountHolder): Promise<AccountHolder | null> {
     const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
       {
-        text: 'UPDATE account_holder SET credttm = $1, source = $2, destination = $3 WHERE source = $4 AND destination = $5 RETURNING source, destination, credttm;',
-        values: [payload.credttm, payload.source, payload.destination, source, destination],
+        text: 'UPDATE account_holder SET credttm = $1, source = $2, destination = $3, tenantid = $4 WHERE source = $5 AND destination = $6 AND tenantid = $7 RETURNING *;',
+        values: [payload.credttm, payload.source, payload.destination, payload.tenantId, source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rowCount ? queryRes.rows[0].evaluation : null;
   },
 
-  remove: async function ({ source, destination }): Promise<boolean> {
+  remove: async function ({ source, destination, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
       {
-        text: 'DELETE FROM account_holder WHERE source = $1 AND destination = $2;',
-        values: [source, destination],
+        text: 'DELETE FROM account_holder WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );

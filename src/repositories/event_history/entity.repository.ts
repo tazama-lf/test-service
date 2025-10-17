@@ -9,7 +9,7 @@ export const EntityRepo: CrudRepository<Entity> = {
     sort ??= 'creDtTm';
     const queryRes = await handleExecuteSqlStatement<Entity>(
       {
-        text: `SELECT id, credttm as "creDtTm" FROM entity WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2`,
+        text: `SELECT id, credttm as "creDtTm" FROM entity WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
         values: [offset, limit, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
@@ -18,11 +18,11 @@ export const EntityRepo: CrudRepository<Entity> = {
     return queryRes.rows.length > 0 ? { data: queryRes.rows.map((values) => values), total: queryRes.rowCount! } : { data: [], total: 0 };
   },
 
-  get: async function (id: string): Promise<Entity | null> {
+  get: async function ({ id, tenantId }): Promise<Entity | null> {
     const queryRes = await handleExecuteSqlStatement<Entity>(
       {
-        text: 'SELECT id, credttm as "creDtTm" FROM entity WHERE id = $1;',
-        values: [id],
+        text: 'SELECT id, credttm as "creDtTm" FROM entity WHERE id = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
@@ -33,30 +33,30 @@ export const EntityRepo: CrudRepository<Entity> = {
   create: async function (payload: Entity): Promise<Entity> {
     const queryRes = await handleExecuteSqlStatement<{ entity: Entity }>(
       {
-        text: 'INSERT INTO entity (id, creDtTm) VALUES ($1,$2) RETURNING id, credttm as "creDtTm";',
-        values: [payload.id, payload.creDtTm],
+        text: 'INSERT INTO entity (id, creDtTm, tenantid) VALUES ($1,$2,$3) RETURNING id, credttm as "creDtTm";',
+        values: [payload.id, payload.creDtTm, payload.TenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rows[0].entity;
   },
 
-  update: async function (id: string, payload: Entity): Promise<Entity | null> {
+  update: async function ({ id, tenantId }, payload: Entity): Promise<Entity | null> {
     const queryRes = await handleExecuteSqlStatement<Entity>(
       {
-        text: 'UPDATE entity SET id = $1, creDtTm = $2 WHERE id = $3 RETURNING id, credttm AS "creDtTm";',
-        values: [payload.id, payload.creDtTm, id],
+        text: 'UPDATE entity SET id = $1, creDtTm = $2, tenantid = $3 WHERE id = $4 AND tenantid = $5 RETURNING id, credttm AS "creDtTm", tenantid;',
+        values: [payload.id, payload.creDtTm, payload.TenantId, id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );
     return queryRes.rowCount ? queryRes.rows[0] : null;
   },
 
-  remove: async function (id: string): Promise<boolean> {
+  remove: async function ({ id, tenantId }): Promise<boolean> {
     const queryRes = await handleExecuteSqlStatement<Entity>(
       {
-        text: 'DELETE FROM entity WHERE id = $1;',
-        values: [id],
+        text: 'DELETE FROM entity WHERE id = $1 AND tenantid = $2;',
+        values: [id, tenantId],
       } satisfies PgQueryConfig,
       'event_history',
     );

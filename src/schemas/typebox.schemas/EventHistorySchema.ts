@@ -9,7 +9,7 @@ export type EntitySchema = Static<typeof EntitySchema>;
 export const EntitySchema = Type.Object({
   id: Type.String(),
   creDtTm: Type.String(),
-  tenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
+  TenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
 });
 
 export type ConditionSchema = Static<typeof ConditionSchema>;
