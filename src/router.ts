@@ -29,7 +29,7 @@ import {
   ReportSchema,
   TransactionRelationshipSchema,
   VerticleSchema,
-} from './schemas/typebox.schemas';
+} from './schemas';
 import { buildCrudPlugin } from './utils/crud-schema';
 import { GetConditionsFromDBPostRequest, GetActiveConditionsFromDBPostRequest } from './utils/verticals.get.query';
 
