@@ -1,0 +1,67 @@
+// SPDX-License-Identifier: Apache-2.0
+import type { PgQueryConfig } from '@tazama-lf/frms-coe-lib';
+import handleExecuteSqlStatement from '../../database.logic.service';
+import type { Connector, CrudRepository } from '../repository.base';
+import type { AccountHolder } from '../../interface/account.holder';
+
+export const AccountHolderRepo: CrudRepository<AccountHolder, Connector> = {
+  list: async function ({ limit, offset, order, sort, tenantId }): Promise<{ data: AccountHolder[]; total: number }> {
+    sort ??= 'credttm';
+    const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
+      {
+        text: `SELECT * FROM account_holder WHERE tenantId = $3 ORDER BY ${sort} ${order} OFFSET $1 LIMIT $2;`,
+        values: [offset, limit, tenantId],
+      },
+      'event_history',
+    );
+
+    return queryRes.rows.length > 0
+      ? { data: queryRes.rows.map((values) => values.evaluation), total: queryRes.rowCount! }
+      : { data: [], total: 0 };
+  },
+
+  get: async function ({ source, destination, tenantId }): Promise<AccountHolder | null> {
+    const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
+      {
+        text: 'SELECT * FROM account_holder WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
+      } satisfies PgQueryConfig,
+      'event_history',
+    );
+
+    return queryRes.rows.length > 0 ? queryRes.rows[0].evaluation : null;
+  },
+
+  create: async function (payload: AccountHolder): Promise<AccountHolder> {
+    const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
+      {
+        text: 'INSERT INTO account_holder (source, destination, credttm, tenantid) VALUES ($1, $2, $3, $4) RETURNING *;',
+        values: [payload.source, payload.destination, payload.credttm, payload.tenantId],
+      } satisfies PgQueryConfig,
+      'event_history',
+    );
+    return queryRes.rows[0].evaluation;
+  },
+
+  update: async function ({ source, destination, tenantId }, payload: AccountHolder): Promise<AccountHolder | null> {
+    const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
+      {
+        text: 'UPDATE account_holder SET credttm = $1, source = $2, destination = $3, tenantid = $4 WHERE source = $5 AND destination = $6 AND tenantid = $7 RETURNING *;',
+        values: [payload.credttm, payload.source, payload.destination, payload.tenantId, source, destination, tenantId],
+      } satisfies PgQueryConfig,
+      'event_history',
+    );
+    return queryRes.rowCount ? queryRes.rows[0].evaluation : null;
+  },
+
+  remove: async function ({ source, destination, tenantId }): Promise<boolean> {
+    const queryRes = await handleExecuteSqlStatement<{ evaluation: AccountHolder }>(
+      {
+        text: 'DELETE FROM account_holder WHERE source = $1 AND destination = $2 AND tenantid = $3;',
+        values: [source, destination, tenantId],
+      } satisfies PgQueryConfig,
+      'event_history',
+    );
+    return queryRes.rowCount ? true : false;
+  },
+};
