@@ -57,7 +57,7 @@ const FIToFIPmtSts = Type.Object({
 
 export const Pacs002Schema = Type.Object({
   TxTp: Type.String(),
-  tenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
+  TenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
   FIToFIPmtSts,
   DataCache: Type.Optional(DataCache),
 });

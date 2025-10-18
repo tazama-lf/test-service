@@ -7,4 +7,5 @@ export const AccountHolderSchema = Type.Object({
   source: Type.String(),
   destination: Type.String(),
   credttm: Type.String(),
+  tenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
 });

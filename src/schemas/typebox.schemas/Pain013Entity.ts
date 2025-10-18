@@ -240,7 +240,7 @@ const CdtrPmtActvtnReq = Type.Object({
 export type Pain013Schema = Static<typeof Pain013Schema>;
 export const Pain013Schema = Type.Object({
   TxTp: Type.String(),
-  tenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
+  TenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
   CdtrPmtActvtnReq,
   DataCache: Type.Optional(DataCache),
 });

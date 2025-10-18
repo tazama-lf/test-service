@@ -3,7 +3,7 @@ import { Type, type Static, type TObject, type TSchema } from '@sinclair/typebox
 import type { FastifyInstance, FastifyPluginAsync, RawServerDefault } from 'fastify';
 import fp from 'fastify-plugin';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { configuration } from '..';
+import { configuration, loggerService } from '..';
 import { tokenHandler } from '../auth/authHandler';
 import type { AllowedId, CrudRepository, ListQuery } from '../repositories/repository.base';
 import { validateTenantMiddleware } from '../middleware/tenantMiddleware';
@@ -103,8 +103,12 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = { id: string; t
           q: search,
           filters,
         };
-
+        loggerService.log(
+          `Started: Listing entities from ${prefix} with params: ${JSON.stringify(params)}.`,
+          'LIST:buildCrudPlugin:app.get',
+        );
         const { data, total } = await repo.list(params);
+        loggerService.log(`Ended: Listing entities from ${prefix} with params: ${JSON.stringify(params)}.`, 'LIST:buildCrudPlugin:app.get');
         return await reply.send({ data, meta: { total, limit, offset } });
       },
     );
@@ -129,8 +133,15 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = { id: string; t
           idParam?.kind === 'composite'
             ? { [idParam.names[0]]: p[idParam.names[0]], [idParam.names[1]]: p[idParam.names[1]], tenantId: p.tenantId }
             : { id: p[singleName], tenantId: p.tenantId };
-
+        loggerService.log(
+          `Started: Getting specific row with id ${id.id} tenant id ${id.tenantId} from ${prefix}.`,
+          'GET:buildCrudPlugin:app.get',
+        );
         const entity = await repo.get(id as TId);
+        loggerService.log(
+          `Ended: Getting specific row with id ${id.id} tenant id ${id.tenantId} from ${prefix}.`,
+          'GET:buildCrudPlugin:app.get',
+        );
         if (!entity) return await reply.code(404).send({ message: 'Not found' });
         return entity;
       },
@@ -150,7 +161,9 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = { id: string; t
           : undefined,
       },
       async (req, reply) => {
+        loggerService.log(`Started: create a row from ${prefix}.`, 'POST:buildCrudPlugin:app.post');
         const created = await repo.create(req.body as TEntity);
+        loggerService.log(`Ended: create a row from ${prefix}.`, 'POST:buildCrudPlugin:app.post');
         return await reply.code(201).send(created);
       },
     );
@@ -175,8 +188,15 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = { id: string; t
           idParam?.kind === 'composite'
             ? { [idParam.names[0]]: p[idParam.names[0]], [idParam.names[1]]: p[idParam.names[1]], tenantId: p.tenantId }
             : { id: p[singleName], tenantId: p.tenantId };
-
+        loggerService.log(
+          `Started: updating an already existing row with id ${id.id} and tenant id ${id.tenantId} from ${prefix}.`,
+          'PUT:buildCrudPlugin:app.put',
+        );
         const updated = await repo.update(id as TId, req.body as TEntity);
+        loggerService.log(
+          `Ended: updating an already existing row with id ${id.id} and tenant id ${id.tenantId} from ${prefix}.`,
+          'PUT:buildCrudPlugin:app.put',
+        );
         if (!updated) return await reply.code(404).send({ message: 'Not found' });
         return updated;
       },
@@ -201,8 +221,16 @@ export const buildCrudPlugin = <TEntity, TId extends AllowedId = { id: string; t
           idParam?.kind === 'composite'
             ? { [idParam.names[0]]: p[idParam.names[0]], [idParam.names[1]]: p[idParam.names[1]], tenantId: p.tenantId }
             : { id: p[singleName], tenantId: p.tenantId };
-
+        loggerService.log(
+          `Started: deleting a row with id ${id.id} and tenant id ${id.tenantId} from ${prefix}.`,
+          'DELETE:buildCrudPlugin:app.delete',
+        );
         const ok = await repo.remove(id as TId);
+        loggerService.log(
+          `Ended: deleting a row with id ${id.id} and tenant id ${id.tenantId} from ${prefix}.`,
+          'DELETE:buildCrudPlugin:app.delete',
+        );
+
         return { success: ok };
       },
     );

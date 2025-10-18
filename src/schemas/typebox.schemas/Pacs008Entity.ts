@@ -184,7 +184,7 @@ const FIToFICstmrCdtTrf = Type.Object({
 export type Pacs008Schema = Static<typeof Pacs008Schema>;
 export const Pacs008Schema = Type.Object({
   TxTp: Type.String(),
-  tenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
+  TenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
   FIToFICstmrCdtTrf,
   DataCache: Type.Optional(DataCache),
 });

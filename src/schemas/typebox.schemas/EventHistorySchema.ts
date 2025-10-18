@@ -3,7 +3,10 @@
 import { Type, type Static } from '@sinclair/typebox';
 
 export type AccountSchema = Static<typeof AccountSchema>;
-export const AccountSchema = Type.String();
+export const AccountSchema = Type.Object({
+  id: Type.String(),
+  TenantId: Type.Optional(Type.String({ default: 'DEFAULT' })),
+});
 
 export type EntitySchema = Static<typeof EntitySchema>;
 export const EntitySchema = Type.Object({
